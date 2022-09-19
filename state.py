@@ -11,13 +11,12 @@ from db import BaseModel
 
 
 class State:
-    EXPLORER_BASE = "https://explorer.nymtech.net/api/v1/"
     PERCENT_NODES_TEST = 10
     ACTIVE_SET_SIZE = 240
     MIN_PERCENT_NODE = 60
 
     def __init__(self):
-        self.apiValidator = utils.VALIDATOR_API_BASE
+        # https://validator.nymtech.net/api/v1/openapi.json
         self.getPacketsMixedEndpoint = utils.ENDPOINT_PACKETS_MIXED
         self.db = BaseModel()
         self.numberMixnodeCheckSet = State.ACTIVE_SET_SIZE / State.PERCENT_NODES_TEST
@@ -30,7 +29,7 @@ class State:
         selected = dict()
         print(f"{datetime.datetime.now()} - update check set")
         try:
-            response = s.get(f"{State.EXPLORER_BASE}/mix-nodes/active-set/active")
+            response = s.get(f"{utils.NYM_VALIDATOR_API_BASE}/api/v1/mixnodes/active")
 
             if response.ok:
                 activeSet = response.json()
@@ -90,7 +89,7 @@ class State:
         s = requests.Session()
 
         try:
-            s.get(f"{self.apiValidator}/api/v1/status/", timeout=self.timeoutValidator,allow_redirects=True)
+            s.get(f"{utils.NYM_VALIDATOR_API_BASE}/api/v1/epoch/current", timeout=self.timeoutValidator,allow_redirects=True)
         except requests.RequestException as e:
             print(traceback.format_exc())
             print(e)
