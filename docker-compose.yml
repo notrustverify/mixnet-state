@@ -11,6 +11,7 @@ services:
       - traefik.http.routers.mixnet_state.tls.certresolver=letsEncrypt
       - traefik.enable=true
     restart: unless-stopped
+    env_file: .env
     ports:
       - 5003:5002
     networks:
