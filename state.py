@@ -1,3 +1,4 @@
+import datetime
 import json
 import sys
 import random
@@ -27,6 +28,7 @@ class State:
         s = requests.Session()
         ipsPort = dict()
         selected = dict()
+        print(f"{datetime.datetime.now()} - update check set")
         try:
             response = s.get(f"{State.EXPLORER_BASE}/mix-nodes/active-set/active")
 
@@ -78,10 +80,10 @@ class State:
         # set mixnet to false if number of mixnode mixed packet lower thant a certain %
         if len(mixnodes) / self.numberMixnodeCheckSet >= (State.MIN_PERCENT_NODE / 100.0):
             print(mixnodes,len(mixnodes))
-            print("Mixnet nok")
+            print(f"{datetime.datetime.now()} Mixnet nok")
             return False
 
-        print("Mixnet ok")
+        print(f"{datetime.datetime.now()} Mixnet ok")
         return True
 
     def getValidatorState(self):
@@ -92,10 +94,10 @@ class State:
         except requests.RequestException as e:
             print(traceback.format_exc())
             print(e)
-            print("Validator nok")
+            print(f"{datetime.datetime.now()} Validator nok")
             return False
 
-        print("Validator ok")
+        print(f"{datetime.datetime.now()} Validator ok")
         return True
 
     def setStates(self):
@@ -105,3 +107,11 @@ class State:
         validatorState = self.getValidatorState()
 
         self.db.setState(mixnetState,validatorState)
+
+    def getUptime(self):
+        lastCrash = self.db.getLastCrashDate()
+
+        if len(lastCrash) <= 0:
+           return self.db.getState()
+
+        return lastCrash[0]

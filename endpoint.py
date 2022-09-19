@@ -1,24 +1,27 @@
 import threading
 import time
 from datetime import datetime, date, timedelta
-
+from os.path import exists
 import schedule
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_restful import Resource, Api
 from cachetools import cached, TTLCache
+import utils
+
+import db
 from state import State
 
 from db import BaseModel
 
 cache = TTLCache(maxsize=10 ** 9, ttl=120)
-app = Flask(__name__, static_url_path='/static')
+app = Flask(__name__)
 api = Api(app)
 
 
 @app.route('/')
 def index():
-    return app.send_static_file('index.html')
+    return render_template('index.html', api_url=utils.API_URL)
 
 
 class MixnetState(Resource):
@@ -34,11 +37,12 @@ class MixnetState(Resource):
         db = BaseModel()
 
         states = db.getState()
-
+        uptime = db.getLastCrashDate()
         data.update({
             "mixnet_working": states['mixnet'],
             "validator_working": states['validator_api'],
-            "last_update": states['created_on'],
+            "last_update": states['created_on'].isoformat() + "Z",
+            "last_downtime": uptime['created_on'].isoformat() + 'Z'
         })
 
         return data
@@ -58,6 +62,9 @@ th = threading.Thread(target=update)
 th.start()
 
 api.add_resource(MixnetState, '/api/state')
+
+if not(exists("./data/data.db")):
+    db.create_tables()
 
 if __name__ == '__main__':
     host = '0.0.0.0'

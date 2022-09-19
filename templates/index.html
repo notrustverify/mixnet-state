@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Mixnet Uptime</title>
-	     <meta name="viewport"  content="width=device-width,i
-nitial-scale=1" />
-
-	</head>
+    <meta name="viewport" content="width=device-width,i
+nitial-scale=1"/>
+    <script src="https://momentjs.com/downloads/moment.min.js"></script>
+</head>
 <body>
-	<style>
+<style>
 	      body {
 	      	margin: 0;
 	            position: absolute;
@@ -67,14 +67,14 @@ on */
   background-color: #04AA6D;
   color: white;
 }
-        </style>
 
+</style>
 
 
 <h2>Is mixnet working ?</h2>
-<a href="https://explorer.nymtech.net/" >Nym's mixnet</a> is <b id="state">working</b>
+<a href="https://explorer.nymtech.net/">Nym's mixnet</a> is <b id="state">working</b> <a id="uptime"></a>
 <br/>
-<small><a href="https://explorer.nymtech.net/api/v1/">Validator API</a> is <b id="stateValidator">working</b>  </small>
+<small><a href="https://explorer.nymtech.net/api/v1/">Validator API</a> is <b id="stateValidator">working</b> </small>
 <br/>
 <br/>
 <small>Last update: <a id="lastUpdate"></a></small>
@@ -83,7 +83,7 @@ on */
 
 
 async function get() {
-    let url = 'https://isnymdown.notrustverify.ch/api/state'
+    let url = '{{api_url}}/api/state'
     let obj = await (await fetch(url)).json();
 
     //console.log(obj);
@@ -104,10 +104,13 @@ var states;
   else
     document.getElementById("stateValidator").innerHTML = "not working";
 
-  document.getElementById("lastUpdate").innerHTML = JSON.stringify(states.last_update).slice(1,-1)
+  document.getElementById("lastUpdate").innerHTML = moment(JSON.stringify(states.last_update).slice(1,-1));
+  document.getElementById("uptime").innerHTML = "since " + moment(JSON.stringify(states.last_downtime).slice(1,-1)).fromNow().replace("in","");
+
 })()
 
-</script>
 
+</script>
+</body>
 
 </html>

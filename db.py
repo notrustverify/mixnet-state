@@ -1,10 +1,11 @@
 import logging
 import sys
+import traceback
 from datetime import datetime
 
 from peewee import *
 
-database = SqliteDatabase('./data.db', pragmas={'foreign_keys': 1})
+database = SqliteDatabase('./data/data.db', pragmas={'foreign_keys': 1})
 
 logger = logging.getLogger('db')
 logHandler = logging.getLogger('db')
@@ -16,14 +17,12 @@ class BaseModel(Model):
         try:
             database.connect()
         except Exception as e:
-            print(sys.exc_info()[2])
-
+            print(traceback.format_exc())
     def close(self):
         try:
             database.close()
         except Exception as e:
-            print(sys.exc_info()[2])
-
+            print(traceback.format_exc())
     def getPacketsLastUpdate(self):
         self.connect()
 
@@ -33,11 +32,11 @@ class BaseModel(Model):
 
         except IntegrityError as e:
             print(e)
-            print(sys.exc_info()[2])
+            print(traceback.format_exc())
             return False
         except DoesNotExist as e:
             print(e)
-            print(sys.exc_info()[2])
+            print(traceback.format_exc())
             return False
         finally:
             self.close()
@@ -56,11 +55,11 @@ class BaseModel(Model):
 
         except IntegrityError as e:
             print(e)
-            print(sys.exc_info()[2])
+            print(traceback.format_exc())
             return False
         except DoesNotExist as e:
             print(e)
-            print(sys.exc_info()[2])
+            print(traceback.format_exc())
             return False
         finally:
             self.close()
@@ -136,7 +135,7 @@ class BaseModel(Model):
         now = datetime.now()
         try:
             with database.atomic():
-                State.insert(mixnet=mixnet, validator_api=validator,created_on=now).execute()
+                State.insert(mixnet=mixnet, validator_api=validator).execute()
         except IntegrityError as e:
             logHandler.exception(e)
             return False
@@ -162,6 +161,41 @@ class BaseModel(Model):
         finally:
             self.close()
 
+    def getLastOkTime(self):
+        self.connect()
+
+        try:
+            with database.atomic():
+                return [s for s in State.select(State.created_on).order_by(State.created_on.asc()).limit(1).dicts()][0]
+
+        except IntegrityError as e:
+            logHandler.exception(e)
+            return False
+        except DoesNotExist as e:
+            logHandler.exception(e)
+            return False
+        finally:
+            self.close()
+
+    def getLastCrashDate(self):
+        self.connect()
+        try:
+            with database.atomic():
+                lastCrash = [s for s in State.select(State.created_on).order_by(State.created_on.desc()).where(State.mixnet == False).limit(1).dicts()]
+
+                if len(lastCrash) <= 0:
+                    return [s for s in State.select(State.created_on).order_by(State.created_on.asc()).limit(1).dicts()][0]
+
+                return lastCrash[0]
+
+        except IntegrityError as e:
+            logHandler.exception(e)
+            return False
+        except DoesNotExist as e:
+            logHandler.exception(e)
+            return False
+        finally:
+            self.close()
 
 class Mixnodes(BaseModel):
     class Meta:

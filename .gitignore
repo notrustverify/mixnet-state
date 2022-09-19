@@ -1,4 +1,4 @@
-data.db
+data/data.db
 .env
 .idea/
 # Byte-compiled / optimized / DLL files
