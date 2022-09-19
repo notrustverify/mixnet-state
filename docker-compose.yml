@@ -11,6 +11,8 @@ services:
       - traefik.http.routers.api_ticker.tls.certresolver=letsEncrypt
       - traefik.enable=true
     restart: unless-stopped
+    ports:
+      - 5003:5002
     networks:
       - traefik-proxy
     volumes:

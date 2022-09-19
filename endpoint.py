@@ -47,7 +47,7 @@ class MixnetState(Resource):
 def update():
     mixnetState = State()
     schedule.every(10).minutes.do(mixnetState.getMixnodes)
-    schedule.every(1).minutes.do(mixnetState.setStates)
+    schedule.every(3).minutes.do(mixnetState.setStates)
 
     while True:
         schedule.run_pending()
