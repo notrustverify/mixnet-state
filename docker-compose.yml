@@ -16,7 +16,7 @@ services:
     networks:
       - traefik-proxy
     volumes:
-      - ./data.db:/data.db
+      - ./data/data.db:/data.db
 
 networks:
    traefik-proxy:
