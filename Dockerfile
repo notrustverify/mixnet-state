@@ -8,7 +8,7 @@ WORKDIR /
 RUN ["pip", "install", "pipenv"]
 COPY ./ /
 RUN ["pipenv", "install", "--system", "--deploy","--ignore-pipfile" ]
-CMD "gunicorn wsgi:app --config gunicorn_config.py"
+CMD gunicorn wsgi:app --config gunicorn_config.py
 ENV PYTHONUNBUFFERED 1
 
 
