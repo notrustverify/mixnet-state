@@ -1,7 +1,7 @@
 version: "3.3"
 
 services:
-  api_ticker:
+  mixnet_state:
     build: .
     image: mixnet-state
     labels:
