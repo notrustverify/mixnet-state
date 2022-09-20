@@ -74,6 +74,22 @@ ul.no-bullets {
   margin: 0; /* Remove margins */
 }
 
+.dotOk {
+  height: 15px;
+  width: 15px;
+  background-color: green;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dotNok {
+  height: 15px;
+  width: 15px;
+  background-color: red;
+  border-radius: 50%;
+  display: inline-block;
+}
+
 </style>
 
 
@@ -117,14 +133,12 @@ var states;
 (async () => {
   states = await get()
   //console.log(tags)
-  if (JSON.stringify(states.mixnet_working) == "true")
-    document.getElementById("state").innerHTML = "working";
-  else
+  if (JSON.stringify(states.mixnet_working) == "false")
     document.getElementById("state").innerHTML = "not working";
 
-  if (JSON.stringify(states.validator_working) == "true")
-    document.getElementById("stateValidator").innerHTML = "working";
-  else
+
+
+  if (JSON.stringify(states.validator_working) == "false")
     document.getElementById("stateValidator").innerHTML = "not working";
 
 
