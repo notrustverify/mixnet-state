@@ -22,6 +22,7 @@ class State:
         self.numberMixnodeCheckSet = State.ACTIVE_SET_SIZE / State.PERCENT_NODES_TEST
         self.timeoutMixnode = 30
         self.timeoutValidator = 45
+        self.timeoutRPC = 45
 
     def getMixnodes(self):
         s = requests.Session()
@@ -102,12 +103,30 @@ class State:
 
         print(f"{datetime.datetime.now()} Validator ok")
         return True
-
+    
+    def getRPCState(self):
+        try:
+                response = s.get(f"{utils.NYM_RPC}/status", timeout=self.timeoutRPC,allow_redirects=True)
+                if response.ok:
+                    state = response.json()
+                    
+                    if "error" in state:
+                        return False
+                    
+                    return True
+                  
+            except requests.RequestException as e:
+                return False
+                print(traceback.format_exc())
+                print(e)
+        
+    
     def setStates(self):
         self.getPacketsMixed()
 
         mixnetState = self.getMixnodesState()
         validatorState = self.getValidatorState()
+        rpcState = self.getRPCState()
 
         self.db.setState(mixnetState,validatorState)
 
