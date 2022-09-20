@@ -61,7 +61,8 @@ class State:
         for ip in ips:
             try:
 
-                response = s.get(f"http://{ip['ip']}:{ip['http_api_port']}/{utils.ENDPOINT_PACKETS_MIXED}", timeout=self.timeoutMixnode,allow_redirects=True)
+                response = s.get(f"http://{ip['ip']}:{ip['http_api_port']}/{utils.ENDPOINT_PACKETS_MIXED}",
+                                 timeout=self.timeoutMixnode, allow_redirects=True)
                 if response.ok:
                     stats = response.json()
                     if stats.get('packets_received_since_last_update') and stats.get('packets_sent_since_last_update'):
@@ -83,7 +84,7 @@ class State:
 
         # set mixnet to false if number of mixnode mixed packet lower thant a certain %
         if len(mixnodes) / self.numberMixnodeCheckSet >= (State.MIN_PERCENT_NODE / 100.0):
-            print(mixnodes,len(mixnodes))
+            print(mixnodes, len(mixnodes))
             print(f"{datetime.datetime.now()} Mixnet nok")
             return False
 
@@ -94,7 +95,8 @@ class State:
         s = requests.Session()
 
         try:
-            s.get(f"{utils.NYM_VALIDATOR_API_BASE}/api/v1/epoch/current", timeout=self.timeoutValidator,allow_redirects=True)
+            s.get(f"{utils.NYM_VALIDATOR_API_BASE}/api/v1/epoch/current", timeout=self.timeoutValidator,
+                  allow_redirects=True)
         except requests.RequestException as e:
             print(traceback.format_exc())
             print(e)
@@ -103,37 +105,76 @@ class State:
 
         print(f"{datetime.datetime.now()} Validator ok")
         return True
-    
+
     def getRPCState(self):
+        s = requests.Session()
+
         try:
-                response = s.get(f"{utils.NYM_RPC}/status", timeout=self.timeoutRPC,allow_redirects=True)
-                if response.ok:
-                    state = response.json()
-                    
-                    if "error" in state:
-                        return False
-                    
-                    return True
-                  
-            except requests.RequestException as e:
+            response = s.get(f"{utils.NYM_RPC}/status", timeout=self.timeoutRPC, allow_redirects=True)
+            if response.ok:
+                state = response.json()
+
+                if "error" in state:
+                    print(f"{datetime.datetime.now()} RPC nok")
+                    return False
+            else:
+                print(f"{datetime.datetime.now()} RPC nok")
                 return False
-                print(traceback.format_exc())
-                print(e)
-        
-    
+        except requests.RequestException as e:
+            print(traceback.format_exc())
+            print(e)
+            print(f"{datetime.datetime.now()} RPC nok")
+            return False
+
+        print(f"{datetime.datetime.now()} RPC ok")
+        return True
+
+    def getEpochState(self):
+        s = requests.Session()
+
+        try:
+            response = s.get(f"{utils.NYM_VALIDATOR_API_BASE}/api/v1/epoch/current", timeout=self.timeoutValidator,
+                             allow_redirects=True)
+
+            if response.ok:
+                state = response.json()
+
+                if state.get('length'):
+                    now = datetime.datetime.utcnow()
+                    epochLength = state['length']['secs']
+                    epochStart = datetime.datetime.fromisoformat(state['start'].replace('Z', ''))
+                    epochId = state['id']
+
+                    if now > epochStart + datetime.timedelta(seconds=epochLength):
+                        print(f"{datetime.datetime.now()} Epoch nok")
+                        return False, epochId
+            else:
+                print(f"{datetime.datetime.now()} Epoch nok")
+                return False, 0
+
+        except requests.RequestException as e:
+            print(traceback.format_exc())
+            print(e)
+            print(f"{datetime.datetime.now()} Epoch nok")
+            return False, 0
+
+        print(f"{datetime.datetime.now()} Epoch ok")
+        return True, epochId
+
     def setStates(self):
         self.getPacketsMixed()
 
         mixnetState = self.getMixnodesState()
         validatorState = self.getValidatorState()
         rpcState = self.getRPCState()
+        epochState, epochId = self.getEpochState()
 
-        self.db.setState(mixnetState,validatorState)
+        self.db.setState(mixnetState, validatorState, rpcState, epochState, epochId)
 
     def getUptime(self):
         lastCrash = self.db.getLastCrashDate()
 
         if len(lastCrash) <= 0:
-           return self.db.getState()
+            return self.db.getState()
 
         return lastCrash[0]

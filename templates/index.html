@@ -68,14 +68,33 @@ on */
   color: white;
 }
 
+ul.no-bullets {
+  list-style-type: none; /* Remove bullets */
+  padding: 0; /* Remove padding */
+  margin: 0; /* Remove margins */
+}
+
 </style>
 
 
 <h2>Is mixnet working ?</h2>
 <a href="https://explorer.nymtech.net/">Nym's mixnet</a> is <b id="state">working</b> <a id="uptime"></a>
 <br/>
-<small><a href="https://validator.nymtech.net/api/v1/epoch/current">Validator API</a> is <b id="stateValidator">working</b> </small>
+<ul class="no-bullets">
+    <li>
+     <small><a href="https://validator.nymtech.net/api/v1/epoch/current">Validator API</a> is <b id="stateValidator">working</b> </small>
+    </li>
+    <li>
+        <small>RPC endpoint</a> is <b id="rpc">working</b></small>
+    </li>
+</ul>
 <br/>
+<ul class="no-bullets">
+    <li>
+        <small>Epoch is <b id="epochRunning">running</b> and set to <b id="epochId">0</b></small>
+    </li>
+</ul>
+
 <br/>
 <small>Last update: <a id="lastUpdate"></a></small>
 <br/>
@@ -108,8 +127,18 @@ var states;
   else
     document.getElementById("stateValidator").innerHTML = "not working";
 
+
+    if (JSON.stringify(states.epoch_working) == "true")
+    document.getElementById("epochRunning").innerHTML = "running";
+  else
+    document.getElementById("epochRunning").innerHTML = "stuck";
+
+  document.getElementById("epochId").innerHTML = JSON.stringify(states.epoch_id);
   document.getElementById("lastUpdate").innerHTML = moment(JSON.stringify(states.last_update).slice(1,-1));
   document.getElementById("uptime").innerHTML = "since " + moment(JSON.stringify(states.last_downtime).slice(1,-1)).fromNow().replace("in","");
+
+
+
 
 })()
 

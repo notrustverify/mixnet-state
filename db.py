@@ -18,11 +18,13 @@ class BaseModel(Model):
             database.connect()
         except Exception as e:
             print(traceback.format_exc())
+
     def close(self):
         try:
             database.close()
         except Exception as e:
             print(traceback.format_exc())
+
     def getPacketsLastUpdate(self):
         self.connect()
 
@@ -130,12 +132,12 @@ class BaseModel(Model):
 
         return data
 
-    def setState(self, mixnet,validator):
+    def setState(self, mixnet, validator,rpc,epochState,epochId):
         self.connect()
         now = datetime.now()
         try:
             with database.atomic():
-                State.insert(mixnet=mixnet, validator_api=validator).execute()
+                State.insert(mixnet=mixnet, validator_api=validator,rpc=rpc,epoch=epochState,epochId=epochId).execute()
         except IntegrityError as e:
             logHandler.exception(e)
             return False
@@ -181,10 +183,12 @@ class BaseModel(Model):
         self.connect()
         try:
             with database.atomic():
-                lastCrash = [s for s in State.select(State.created_on).order_by(State.created_on.desc()).where(State.mixnet == False).limit(1).dicts()]
+                lastCrash = [s for s in State.select(State.created_on).order_by(State.created_on.desc()).where(
+                    State.mixnet == False).limit(1).dicts()]
 
                 if len(lastCrash) <= 0:
-                    return [s for s in State.select(State.created_on).order_by(State.created_on.asc()).limit(1).dicts()][0]
+                    return \
+                    [s for s in State.select(State.created_on).order_by(State.created_on.asc()).limit(1).dicts()][0]
 
                 return lastCrash[0]
 
@@ -196,6 +200,7 @@ class BaseModel(Model):
             return False
         finally:
             self.close()
+
 
 class Mixnodes(BaseModel):
     class Meta:
@@ -219,6 +224,9 @@ class State(BaseModel):
     mixnet = BooleanField(default=False)
     validator_api = BooleanField(default=False)
     nym_client = BooleanField(default=False)
+    rpc = BooleanField(default=False)
+    epoch = BooleanField(default=False)
+    epochId = IntegerField(default=0)
 
     created_on = DateTimeField(default=datetime.now)
     updated_on = DateTimeField(default=datetime.now)

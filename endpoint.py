@@ -38,11 +38,14 @@ class MixnetState(Resource):
 
         states = db.getState()
         uptime = db.getLastCrashDate()
+
         data.update({
             "mixnet_working": states['mixnet'],
             "validator_working": states['validator_api'],
             "last_update": states['created_on'].isoformat() + "Z",
-            "last_downtime": uptime['created_on'].isoformat() + 'Z'
+            "last_downtime": uptime['created_on'].isoformat() + 'Z',
+            "epoch_working": states['epoch'],
+            "epoch_id": states['epochId']
         })
 
         return data
@@ -50,8 +53,8 @@ class MixnetState(Resource):
 
 def update():
     mixnetState = State()
-    schedule.every(10).minutes.do(mixnetState.getMixnodes)
-    schedule.every(3).minutes.do(mixnetState.setStates)
+    schedule.every(utils.UPDATE_MINUTES_CHECK_SET).minutes.do(mixnetState.getMixnodes)
+    schedule.every(utils.UPDATE_MINUTES_STATE).minutes.do(mixnetState.setStates)
 
     while True:
         schedule.run_pending()
@@ -63,7 +66,7 @@ th.start()
 
 api.add_resource(MixnetState, '/api/state')
 
-if not(exists("./data/data.db")):
+if not (exists("./data/data.db")):
     db.create_tables()
 
 if __name__ == '__main__':
