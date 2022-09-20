@@ -69,7 +69,11 @@ class State:
                         print(ip['ip'], totalPacketMixed)
 
                         self.db.updatePackets(ip['ip'], ip['http_api_port'], totalPacketMixed)
+                    else:
+                        print(ip['ip'], totalPacketMixed)
+                        self.db.updatePackets(ip['ip'], ip['http_api_port'], 0)
             except requests.RequestException as e:
+                self.db.updatePackets(ip['ip'], ip['http_api_port'], 0)
                 print(traceback.format_exc())
                 print(e)
 
