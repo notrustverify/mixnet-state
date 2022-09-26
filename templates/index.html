@@ -5,8 +5,7 @@
     <title>Mixnet Uptime</title>
     <meta name="viewport" content="width=device-width,i
 nitial-scale=1"/>
-    <script src="https://momentjs.com/downloads/moment.min.js"></script>
-</head>
+   <script src="https://cdn.jsdelivr.net/npm/dayjs-with-plugins@1.0.2/dist/dayjs-with-plugins.min.js"></script>
 <body>
 <style>
 	      body {
@@ -107,7 +106,10 @@ ul.no-bullets {
 <br/>
 <ul class="no-bullets">
     <li>
-        <small>Epoch is <b id="epochRunning">running</b> and set to <b id="epochId">0</b></small>
+        Epoch is <b id="epochRunning">running</b> and set to <b id="epochId">0</b>
+    </li>
+    <li>
+        <small>Ends <b id="epochEnd"></b></small>
     </li>
 </ul>
 
@@ -121,17 +123,14 @@ ul.no-bullets {
 <script>
 
 
-async function get() {
-    let url = '{{api_url}}/api/state'
+async function get(url) {
     let obj = await (await fetch(url)).json();
-
-    //console.log(obj);
     return obj;
 }
 
 var states;
 (async () => {
-  states = await get()
+  states = await get("{{api_url}}/api/state")
   //console.log(tags)
   if (JSON.stringify(states.mixnet_working) == "false")
     document.getElementById("state").innerHTML = "not working";
@@ -148,14 +147,20 @@ var states;
     document.getElementById("epochRunning").innerHTML = "stuck";
 
   document.getElementById("epochId").innerHTML = JSON.stringify(states.epoch_id);
-  document.getElementById("lastUpdate").innerHTML = moment(JSON.stringify(states.last_update).slice(1,-1));
-  document.getElementById("uptime").innerHTML = "since " + moment(JSON.stringify(states.last_downtime).slice(1,-1)).fromNow().replace("in","");
-
-
-
+  document.getElementById("lastUpdate").innerHTML = dayjs(JSON.stringify(states.last_update).slice(1,-1)).format("LLL");
+  document.getElementById("uptime").innerHTML = "since " + dayjs(JSON.stringify(states.last_downtime).slice(1,-1)).fromNow().replace("in","");
 
 })()
+var epoch;
+(async () => {
+ let tzUser = dayjs.tz.guess();
+ epoch = await get("https://validator.nymtech.net/api/v1/epoch/current");
+ let interval = JSON.stringify(epoch.length.secs);
+ let epochStart = dayjs(JSON.stringify(epoch.start).slice(1,-1)).tz(tzUser);
+ let epochEnd = epochStart.add(interval,'seconds');
+ document.getElementById("epochEnd").innerHTML = epochStart.fromNow() + " at " +epochEnd.format("LTS");
 
+})()
 
 </script>
 </body>
