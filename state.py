@@ -64,6 +64,7 @@ class State:
                 response = s.get(f"http://{ip['ip']}:{ip['http_api_port']}/{utils.ENDPOINT_PACKETS_MIXED}",
                                  timeout=self.timeoutMixnode, allow_redirects=True)
                 if response.ok:
+                    totalPacketMixed = 0
                     stats = response.json()
                     if stats.get('packets_received_since_last_update') and stats.get('packets_sent_since_last_update'):
                         totalPacketMixed = stats.get('packets_received_since_last_update') + stats.get(
