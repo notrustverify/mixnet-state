@@ -5,8 +5,11 @@
     <title>Mixnet Uptime</title>
     <meta name="viewport" content="width=device-width,i
 nitial-scale=1"/>
-   <script src="https://cdn.jsdelivr.net/npm/dayjs-with-plugins@1.0.2/dist/dayjs-with-plugins.min.js"></script>
-<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.5/dayjs.min.js" integrity="sha512-Ot7ArUEhJDU0cwoBNNnWe487kjL5wAOsIYig8llY/l0P2TUFwgsAHVmrZMHsT8NGo+HwkjTJsNErS6QqIkBxDw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.5/plugin/relativeTime.min.js" integrity="sha512-MVzDPmm7QZ8PhEiqJXKz/zw2HJuv61waxb8XXuZMMs9b+an3LoqOqhOEt5Nq3LY1e4Ipbbd/e+AWgERdHlVgaA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.5/plugin/timezone.min.js" integrity="sha512-fG1tT/Wn/ZOyH6/Djm8HQBuqvztPQdK/vBgNFLx6DQVt3yYYDPN3bXnGZT4z4kAnURzGQwAnM3CspmhLJAD/5Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.5/plugin/localizedFormat.min.js" integrity="sha512-vjS0MkqX58pv35Mv03gzee3TSJ74Gg5lPkgel1V8czy+sTX/ZoFMs/FqnGzWpf3IV+Ry3/mJ0i9nANcjKk1fBg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.5/plugin/utc.min.js" integrity="sha512-z84O912dDT9nKqvpBnl1tri5IN0j/OEgMzLN1GlkpKLMscs5ZHVu+G2CYtA6dkS0YnOGi3cODt3BOPnYc8Agjg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <style>
 	      body {
 	      	margin: 0;
@@ -122,6 +125,11 @@ ul.no-bullets {
 </small>
 <script>
 
+dayjs.extend(window.dayjs_plugin_relativeTime);
+dayjs.extend(window.dayjs_plugin_utc);
+dayjs.extend(window.dayjs_plugin_timezone);
+dayjs.extend(window.dayjs_plugin_localizedFormat);
+dayjs.tz.setDefault('Europe/Berlin');
 
 async function get(url) {
     let obj = await (await fetch(url)).json();
@@ -147,7 +155,7 @@ var states;
     document.getElementById("epochRunning").innerHTML = "stuck";
 
   document.getElementById("epochId").innerHTML = JSON.stringify(states.epoch_id);
-  document.getElementById("lastUpdate").innerHTML = dayjs(JSON.stringify(states.last_update).slice(1,-1)).format("LLL");
+  document.getElementById("lastUpdate").innerHTML = dayjs(JSON.stringify(states.last_update).slice(1,-1)).format("lll");
   document.getElementById("uptime").innerHTML = "since " + dayjs(JSON.stringify(states.last_downtime).slice(1,-1)).fromNow().replace("in","");
 
 })()
@@ -158,7 +166,7 @@ var epoch;
  let interval = JSON.stringify(epoch.length.secs);
  let epochStart = dayjs(JSON.stringify(epoch.start).slice(1,-1)).tz(tzUser);
  let epochEnd = epochStart.add(interval,'seconds');
- document.getElementById("epochEnd").innerHTML = epochStart.fromNow() + " at " +epochEnd.format("LTS");
+ document.getElementById("epochEnd").innerHTML = epochEnd.fromNow() + " at " +epochEnd.format("LTS");
 
 })()
 

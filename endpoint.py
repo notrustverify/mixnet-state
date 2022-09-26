@@ -53,12 +53,11 @@ class MixnetState(Resource):
 
 def update():
     mixnetState = State()
-    firstLaunch = False
-    if firstLaunch:
-        print("Running first time - update check set")
-        mixnetState.getMixnodes()
-        firstLaunch = True
-    
+
+    # update check set at start
+    mixnetState.getMixnodes()
+    print("update end")
+
     schedule.every(utils.UPDATE_MINUTES_CHECK_SET).minutes.do(mixnetState.getMixnodes)
     schedule.every(utils.UPDATE_MINUTES_STATE).minutes.do(mixnetState.setStates)
 
