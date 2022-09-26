@@ -42,9 +42,10 @@ class MixnetState(Resource):
         data.update({
             "mixnet_working": states['mixnet'],
             "validator_working": states['validator_api'],
+            "epoch_working": states['epoch'],
+            "rpc_working": states["rpc"],
             "last_update": states['created_on'].isoformat() + "Z",
             "last_downtime": uptime['created_on'].isoformat() + 'Z',
-            "epoch_working": states['epoch'],
             "epoch_id": states['epochId']
         })
 
