@@ -9,7 +9,9 @@ from flask_restful import Resource, Api
 from cachetools import cached, TTLCache
 import utils
 
+
 import db
+from mixnet import Mixnet
 from state import State
 
 from db import BaseModel
@@ -52,25 +54,63 @@ class MixnetState(Resource):
         return data
 
 
+class MixnetStats(Resource):
+    def get(self):
+        data = self.read_data()
+        response = jsonify(data)
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
+
+    @cached(cache={})
+    def read_data(self):
+        data = {}
+        db = BaseModel()
+
+        packetsMixed = db.getTotalMixedPackets()
+
+        if len(packetsMixed) > 0:
+            payload_received = packetsMixed['total_packets_received'] * utils.SPHINX_PACKET_PAYLOAD_BYTES
+            payload_sent = packetsMixed['total_packets_sent'] * utils.SPHINX_PACKET_PAYLOAD_BYTES
+            data.update({
+                "packets_received": packetsMixed['total_packets_received'],
+                "packets_sent": packetsMixed['total_packets_sent'],
+                "mixnet_bytes_received": payload_received,
+                "mixnet_bytes_sent": payload_sent,
+                "mixnet_speed_bytes_sec_received": payload_received/utils.UPDATE_SECONDS_PACKETS,
+                "mixnet_speed_bytes_sec_sent": payload_sent/utils.UPDATE_SECONDS_PACKETS,
+                "spinx_packet_bytes": utils.SPHINX_PACKET_SIZE_BYTES,
+                "spinx_packet_payload_bytes": utils.SPHINX_PACKET_PAYLOAD_BYTES,
+                "last_update": packetsMixed['created_on']
+            })
+        else:
+            data = []
+        return data
+
+
 def update():
     mixnetState = State()
+    mixnet = Mixnet()
 
     # update check set at start
     mixnetState.getMixnodes()
-    print("update end")
+    mixnet.getActiveSetNodes()
+    print(f"{datetime.now()} - update end")
 
     schedule.every(utils.UPDATE_MINUTES_CHECK_SET).minutes.do(mixnetState.getMixnodes)
     schedule.every(utils.UPDATE_MINUTES_STATE).minutes.do(mixnetState.setStates)
+    schedule.every(utils.UPDATE_SECONDS_PACKET_MIXED).seconds.do(mixnet.getPacketsMixnode)
+    schedule.every(utils.UPDATE_MINUTES_ACTIVE_SET).minutes.do(mixnet.getActiveSetNodes)
 
     while True:
         schedule.run_pending()
-        time.sleep(60)
+        time.sleep(15)
 
 
 th = threading.Thread(target=update)
 th.start()
 
 api.add_resource(MixnetState, '/api/state')
+api.add_resource(MixnetStats, '/api/packets')
 
 if not (exists("./data/data.db")):
     db.create_tables()

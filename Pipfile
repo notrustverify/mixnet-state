@@ -12,6 +12,8 @@ cachetools = "*"
 Flask-RESTful = "*"
 python-dotenv = "*"
 gunicorn = "*"
+aiohttp = "*"
+python-dateutil = "*"
 
 [dev-packages]
 

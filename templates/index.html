@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Mixnet Uptime</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <meta name="viewport" content="width=device-width,i
 nitial-scale=1"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.5/dayjs.min.js" integrity="sha512-Ot7ArUEhJDU0cwoBNNnWe487kjL5wAOsIYig8llY/l0P2TUFwgsAHVmrZMHsT8NGo+HwkjTJsNErS6QqIkBxDw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -107,6 +108,7 @@ ul.no-bullets {
     </li>
 </ul>
 <br/>
+    <div style="padding-left: 1em;">
 <ul class="no-bullets">
     <li>
         Epoch is <b id="epochRunning">running</b> and set to <b id="epochId">0</b>
@@ -115,9 +117,29 @@ ul.no-bullets {
         <small>Ends <b id="epochEnd"></b></small>
     </li>
 </ul>
+    <br/>
+    <h2 style="text-align: center;padding-left: 1em;">Mixnet stats</h2>
+    <ul class="no-bullets">
+        <li>
+            Estimated speed is <b id="estimatedSpeed">0</b>
+        </li>
+    </ul>
+    <br/>
+      <ul class="no-bullets">
+        <li>
+            Average is <b id="packets">0</b> packets
+        </li>
+        <li>
+            <small><b id="pktsRecv">0</b> packets received</small>
+        </li>
+         <li>
+            <small><b id="pktsSent">0</b> packets sent </small>
+        </li>
+    </ul>
+</div>
 
 <br/>
-<small>Last update: <a id="lastUpdate"></a></small>
+<small style="padding-left: 1em;text-align: center;">Last update: <a id="lastUpdate"></a></small>
 <br/>
 <br/>
 <small style="color: gray; text-align: center;padding-left: 1em;">
@@ -131,13 +153,27 @@ dayjs.extend(window.dayjs_plugin_timezone);
 dayjs.extend(window.dayjs_plugin_localizedFormat);
 dayjs.tz.setDefault('Europe/Berlin');
 
+
+function formatBytes(bytes, decimals = 2) {
+    if (!+bytes) return '0 Bytes'
+
+    const k = 1024
+    const dm = decimals < 0 ? 0 : decimals
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
+}
+
+
 async function get(url) {
     let obj = await (await fetch(url)).json();
     return obj;
 }
 
 var states;
-(async () => {
+async function updateStates() {
   states = await get("{{api_url}}/api/state")
   //console.log(tags)
       if (JSON.stringify(states.mixnet_working) == "false"){
@@ -165,9 +201,10 @@ var states;
   document.getElementById("lastUpdate").innerHTML = dayjs(JSON.stringify(states.last_update).slice(1,-1)).format("lll");
   document.getElementById("uptime").innerHTML = "since " + dayjs(JSON.stringify(states.last_downtime).slice(1,-1)).fromNow().replace("in","");
 
-})()
+}
+
 var epoch;
-(async () => {
+async function updateEpoch() {
  let tzUser = dayjs.tz.guess();
  epoch = await get("https://validator.nymtech.net/api/v1/epoch/current");
  let interval = JSON.stringify(epoch.length.secs);
@@ -175,8 +212,38 @@ var epoch;
  let epochEnd = epochStart.add(interval,'seconds');
  document.getElementById("epochEnd").innerHTML = epochEnd.fromNow() + " at " +epochEnd.format("LTS");
 
-})()
+}
 
+var packets
+async function updatePkts() {
+
+        packets = await get("{{api_url}}/api/packets");
+        var nf = Intl.NumberFormat();
+
+        mixnet_speed_bytes_sec_received = parseFloat(JSON.stringify(packets.mixnet_speed_bytes_sec_received));
+        mixnet_speed_bytes_sec_sent = parseFloat(JSON.stringify(packets.mixnet_speed_bytes_sec_sent));
+        packets_received = parseFloat(JSON.stringify(packets.packets_received));
+        packets_sent = parseFloat(JSON.stringify(packets.packets_sent));
+
+        document.getElementById("estimatedSpeed").innerHTML = formatBytes((mixnet_speed_bytes_sec_received + mixnet_speed_bytes_sec_sent)/2.0)+"/s";
+
+        document.getElementById("packets").innerHTML = nf.format((packets_received + packets_sent)/2.0);
+        document.getElementById("pktsRecv").innerHTML = nf.format(packets_received);
+        document.getElementById("pktsSent").innerHTML = nf.format(packets_sent);
+
+
+}
+
+updateAllEvents()
+
+function updateAllEvents(){
+updatePkts();
+updateEpoch();
+updateStates();
+}
+
+// update every 1 minute
+setInterval(updateAllEvents, 100000);
 </script>
 </body>
 
