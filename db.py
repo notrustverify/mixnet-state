@@ -278,8 +278,7 @@ class BaseModel(Model):
         self.connect()
         try:
             with database.atomic():
-                return list(PacketsMixed.select(PacketsMixed.total_packets_sent, PacketsMixed.total_packets_received,PacketsMixed.updated_on)
-                            .order_by(PacketsMixed.created_on.desc()).limit(numResults).dicts())
+                return list(PacketsMixed.select().order_by(PacketsMixed.created_on.desc()).limit(numResults).dicts())
         except IntegrityError as e:
             logHandler.exception(e)
             return False
