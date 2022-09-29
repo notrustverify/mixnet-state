@@ -27,13 +27,14 @@ class Mixnet:
         self.db = BaseModel()
         self.timeoutMixnode = 5
 
-    def getActiveSetNodes(self):
-        try:
-            packetsLastUpdate = self.db.getLastMixedPackets()[0]['updated_on']
-            if utils.getNextEpoch() is not None and datetime.datetime.timestamp(packetsLastUpdate) < utils.getNextEpoch():
-                return
-        except KeyError and IndexError:
-            print(traceback.format_exc())
+    def getActiveSetNodes(self,firstRun=False):
+        if not firstRun:
+            try:
+                packetsLastUpdate = self.db.getLastMixedPackets()[0]['updated_on']
+                if utils.getNextEpoch() is not None and datetime.datetime.timestamp(packetsLastUpdate) < utils.getNextEpoch():
+                    return
+            except KeyError and IndexError:
+                print(traceback.format_exc())
 
         s = requests.Session()
         ipsPort = dict()
@@ -70,6 +71,16 @@ class Mixnet:
 
     def getPacketsMixnode(self):
         asyncio.run(self.getConcurrentPacketsMixed())
+
+    @staticmethod
+    async def fetch(session, url):
+
+        async with session.get(url, allow_redirects=True, timeout=5) as resp:
+            try:
+                return await resp.json() if resp.ok else None
+            except requests.RequestException or asyncio.TimeoutError as e:
+                print(traceback.format_exc())
+                print(e)
 
     async def getConcurrentPacketsMixed(self):
         ips = [f"http://{ip['ip']}:{ip['http_api_port']}/{utils.ENDPOINT_PACKETS_MIXED}" for ip in
