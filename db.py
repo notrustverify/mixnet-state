@@ -75,7 +75,7 @@ class BaseModel(Model):
 
                     Mixnodes.insert(ip=ip, http_api_port=port, in_active_set=True, updated_on=now, created_on=now
                                     ).on_conflict(action="update", conflict_target=[Mixnodes.ip],
-                                                  update={'ip': ip, 'http_api_port': port, "in_check_set": True,
+                                                  update={'ip': ip, 'http_api_port': port, "in_active_set": True,
                                                           'updated_on': datetime.now()}).execute()
 
         except IntegrityError as e:
