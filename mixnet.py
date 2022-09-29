@@ -55,7 +55,6 @@ class Mixnet:
                 print(f"Layer repartition {count}")
         except requests.RequestException as e:
             print(traceback.format_exc())
-            return None
 
     def getDiffPacketsMixed(self):
         packets = self.db.getLastMixedPackets()
@@ -72,29 +71,17 @@ class Mixnet:
     def getPacketsMixnode(self):
         asyncio.run(self.getConcurrentPacketsMixed())
 
-    @staticmethod
-    async def fetch(session, url):
-
-        async with session.get(url, allow_redirects=True, timeout=5) as resp:
-            try:
-                return await resp.json() if resp.ok else None
-            except requests.RequestException or asyncio.TimeoutError as e:
-                print(traceback.format_exc())
-                print(e)
-
     async def getConcurrentPacketsMixed(self):
         ips = [f"http://{ip['ip']}:{ip['http_api_port']}/{utils.ENDPOINT_PACKETS_MIXED}" for ip in
                self.db.getActiveSet()]
 
-        now = datetime.datetime.now()
-
         async with aiohttp.ClientSession(raise_for_status=True) as session:
-            urls = [asyncio.ensure_future(Mixnet.fetch(session, url)) for url in ips]
+            urls = [asyncio.ensure_future(utils.fetch(session, url)) for url in ips]
             data = await asyncio.gather(*urls, return_exceptions=True)
 
         totalPktsRecv = 0
         totalPktsSent = 0
-        avgTimeUpdate = []
+        timeUpdate = []
         for stats in data:
             # type must be tested because fetch method could return Timeout object
             if type(stats) == dict:
@@ -105,9 +92,14 @@ class Mixnet:
                     totalPktsSent += stats.get('packets_sent_since_last_update')
                     updateTime = parser.isoparse(stats.get('update_time'))
                     previousUpdateTime = parser.isoparse(stats.get('previous_update_time'))
-                    avgTimeUpdate.append(updateTime - previousUpdateTime)
+                    timeUpdate.append(updateTime - previousUpdateTime)
 
-        self.db.updateTotalPackets(totalPktsRecv, totalPktsSent)
+        avgTimeUpdate = reduce(lambda a, b: a + b, timeUpdate) / len(timeUpdate)
+
+        MU = 10.0**6
+        # microseconds are maybe overkill but could be useful later
+        avgTimeUpdate = avgTimeUpdate.seconds+avgTimeUpdate.microseconds/MU
+        self.db.updateTotalPackets(totalPktsRecv, totalPktsSent, avgTimeUpdate)
 
         print(
-            f"{datetime.datetime.now()} - update mixed packets end. Pkts avg mixnodes update {reduce(lambda a, b: a + b, avgTimeUpdate) / len(avgTimeUpdate)}s")
+            f"{datetime.datetime.now()} - update mixed packets end. Pkts avg mixnodes update {reduce(lambda a, b: a + b, timeUpdate) / len(timeUpdate)}s")

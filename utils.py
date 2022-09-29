@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import os
 import traceback
@@ -36,7 +37,6 @@ def format_bytes(size):
 
 
 def getNextEpoch():
-
     s = requests.Session()
     currentEpoch = 0
     epochLength = 0
@@ -46,7 +46,6 @@ def getNextEpoch():
         if response.ok:
             epoch = response.json()
             if epoch.get('start'):
-
                 currentEpoch = datetime.datetime.strptime(epoch.get('start'), "%Y-%m-%dT%H:%M:%SZ")
                 epochLength = epoch['length'].get('secs')
 
@@ -55,3 +54,12 @@ def getNextEpoch():
     except requests.RequestException as e:
         print(traceback.format_exc())
         return None
+
+
+async def fetch(session, url):
+    async with session.get(url, allow_redirects=True, timeout=30) as resp:
+        try:
+            return await resp.json() if resp.ok else None
+        except (requests.RequestException, asyncio.TimeoutError) as e:
+            print(traceback.format_exc())
+            print(e)

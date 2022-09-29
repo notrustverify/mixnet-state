@@ -1,8 +1,11 @@
+import asyncio
 import datetime
 import json
 import sys
 import random
 import traceback
+
+import aiohttp
 
 import utils
 import requests
@@ -80,6 +83,34 @@ class State:
                 print(traceback.format_exc())
                 print(e)
 
+    async def getConcurrentPacketsMixed(self):
+
+        ips = [f"{ip['ip']}:{ip['http_api_port']}" for ip in self.db.getCheckSet()]
+
+        async with aiohttp.ClientSession(raise_for_status=True) as session:
+            urls = [asyncio.ensure_future(utils.fetch(session, f"http://{url}/{utils.ENDPOINT_PACKETS_MIXED}")) for url
+                    in ips]
+            data = await asyncio.gather(*urls, return_exceptions=True)
+
+        data = dict(zip(ips, data))
+
+        for ipPort, stats in data.items():
+            # type must be tested because fetch method could return Timeout object
+            if type(stats) == dict:
+                totalPacketMixed = 0
+                ip = ipPort.split(':')[0]
+                port = ipPort.split(':')[1]
+
+                if stats.get('packets_received_since_last_update') and stats.get('packets_sent_since_last_update'):
+                    totalPacketMixed = stats.get('packets_received_since_last_update') + stats.get(
+                        'packets_sent_since_last_update')
+                    print(ip, totalPacketMixed)
+
+                    self.db.updatePackets(ip, port, totalPacketMixed)
+                else:
+                    print(ip, totalPacketMixed)
+                    self.db.updatePackets(ip, port, totalPacketMixed)
+
     def getMixnodesState(self):
         mixnodes = self.db.getMixnodesNoPacketMixed()
 
@@ -132,7 +163,7 @@ class State:
 
     def getEpochState(self):
         s = requests.Session()
-
+        epochId = 0
         try:
             response = s.get(f"{utils.NYM_VALIDATOR_API_BASE}/api/v1/epoch/current", timeout=self.timeoutValidator,
                              allow_redirects=True)
@@ -163,7 +194,7 @@ class State:
         return True, epochId
 
     def setStates(self):
-        self.getPacketsMixed()
+        asyncio.run(self.getConcurrentPacketsMixed())
 
         mixnetState = self.getMixnodesState()
         validatorState = self.getValidatorState()

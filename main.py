@@ -11,7 +11,7 @@ if __name__ == '__main__':
     state = State()
     mixnet = Mixnet()
     db = BaseModel()
-
+    asyncio.run(state.getConcurrentPacketsMixed())
     #print(db.BaseModel().getLastCrashDate())
     #state.setStates()
     while True:

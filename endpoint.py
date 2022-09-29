@@ -1,15 +1,14 @@
 import threading
 import time
+import traceback
 from datetime import datetime, date, timedelta
 from os.path import exists
 import schedule
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify, render_template
-from flask_restful import Resource, Api
+from flask import Flask, request, jsonify, render_template, Response
+from flask_restful import Resource, Api, abort
 from cachetools import cached, TTLCache
 import utils
-
-
 import db
 from mixnet import Mixnet
 from state import State
@@ -30,6 +29,8 @@ class MixnetState(Resource):
     def get(self):
         data = self.read_data()
         response = jsonify(data)
+        if len(data) <= 0:
+            abort(404, error_message="no data")
         response.headers.add("Access-Control-Allow-Origin", "*")
         return response
 
@@ -37,27 +38,32 @@ class MixnetState(Resource):
     def read_data(self):
         data = {}
         db = BaseModel()
+        try:
+            states = db.getState()[0]
+            uptime = db.getLastCrashDate()
 
-        states = db.getState()
-        uptime = db.getLastCrashDate()
+            data.update({
+                "mixnet_working": states['mixnet'],
+                "validator_working": states['validator_api'],
+                "epoch_working": states['epoch'],
+                "rpc_working": states["rpc"],
+                "last_update": states['created_on'].isoformat() + "Z",
+                "last_downtime": uptime['created_on'].isoformat() + 'Z',
+                "epoch_id": states['epochId']
+            })
 
-        data.update({
-            "mixnet_working": states['mixnet'],
-            "validator_working": states['validator_api'],
-            "epoch_working": states['epoch'],
-            "rpc_working": states["rpc"],
-            "last_update": states['created_on'].isoformat() + "Z",
-            "last_downtime": uptime['created_on'].isoformat() + 'Z',
-            "epoch_id": states['epochId']
-        })
-
-        return data
+            return data
+        except (IndexError, KeyError):
+            print(traceback.format_exc())
+            return {}
 
 
 class MixnetStats(Resource):
     def get(self):
         data = self.read_data()
         response = jsonify(data)
+        if len(data) <= 0:
+            abort(404, error_message="no data")
         response.headers.add("Access-Control-Allow-Origin", "*")
         return response
 
@@ -67,8 +73,7 @@ class MixnetStats(Resource):
         db = BaseModel()
 
         packetsMixed = db.getTotalMixedPackets()
-
-        if len(packetsMixed) > 0:
+        try:
             payload_received = packetsMixed['total_packets_received'] * utils.SPHINX_PACKET_PAYLOAD_BYTES
             payload_sent = packetsMixed['total_packets_sent'] * utils.SPHINX_PACKET_PAYLOAD_BYTES
             data.update({
@@ -76,15 +81,17 @@ class MixnetStats(Resource):
                 "packets_sent": packetsMixed['total_packets_sent'],
                 "mixnet_bytes_received": payload_received,
                 "mixnet_bytes_sent": payload_sent,
-                "mixnet_speed_bytes_sec_received": payload_received/utils.UPDATE_SECONDS_PACKETS,
-                "mixnet_speed_bytes_sec_sent": payload_sent/utils.UPDATE_SECONDS_PACKETS,
+                "mixnet_speed_bytes_sec_received": payload_received / utils.UPDATE_SECONDS_PACKETS,
+                "mixnet_speed_bytes_sec_sent": payload_sent / utils.UPDATE_SECONDS_PACKETS,
                 "spinx_packet_bytes": utils.SPHINX_PACKET_SIZE_BYTES,
                 "spinx_packet_payload_bytes": utils.SPHINX_PACKET_PAYLOAD_BYTES,
                 "last_update": packetsMixed['created_on']
             })
-        else:
-            data = []
-        return data
+
+            return data
+        except (IndexError, KeyError):
+            print(traceback.format_exc())
+            return {}
 
 
 def update():
@@ -103,7 +110,7 @@ def update():
 
     while True:
         schedule.run_pending()
-        time.sleep(15)
+        time.sleep(1)
 
 
 th = threading.Thread(target=update)
