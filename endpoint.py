@@ -72,8 +72,10 @@ class MixnetStats(Resource):
         data = {}
         db = BaseModel()
 
-        packetsMixed = db.getTotalMixedPackets()
+
         try:
+            packetsMixed = db.getLastMixedPackets()[0]
+
             payload_received = packetsMixed['total_packets_received'] * utils.SPHINX_PACKET_PAYLOAD_BYTES
             payload_sent = packetsMixed['total_packets_sent'] * utils.SPHINX_PACKET_PAYLOAD_BYTES
             data.update({
