@@ -27,11 +27,12 @@ class Mixnet:
         self.db = BaseModel()
         self.timeoutMixnode = 5
 
-    def getActiveSetNodes(self,firstRun=False):
+    def getActiveSetNodes(self, firstRun=False):
         if not firstRun:
             try:
                 packetsLastUpdate = self.db.getLastMixedPackets()[0]['updated_on']
-                if utils.getNextEpoch() is not None and datetime.datetime.timestamp(packetsLastUpdate) < utils.getNextEpoch():
+                if utils.getNextEpoch() is not None and datetime.datetime.timestamp(
+                        packetsLastUpdate) < utils.getNextEpoch():
                     return
             except KeyError and IndexError:
                 print(traceback.format_exc())
@@ -107,9 +108,9 @@ class Mixnet:
 
         avgTimeUpdate = reduce(lambda a, b: a + b, timeUpdate) / len(timeUpdate)
 
-        MU = 10.0**6
+        MU = 10.0 ** 6
         # microseconds are maybe overkill but could be useful later
-        avgTimeUpdate = avgTimeUpdate.seconds+avgTimeUpdate.microseconds/MU
+        avgTimeUpdate = avgTimeUpdate.seconds + avgTimeUpdate.microseconds / MU
         self.db.updateTotalPackets(totalPktsRecv, totalPktsSent, avgTimeUpdate)
 
         print(
