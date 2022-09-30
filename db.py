@@ -73,10 +73,13 @@ class BaseModel(Model):
             with database.atomic():
                 for ip, data in ips.items():
                     now = datetime.utcnow()
-                    Mixnodes.insert(ip=ip, http_api_port=data['http_api_port'], in_active_set=True, layer=data['layer'], updated_on=now, created_on=now
+                    Mixnodes.insert(ip=ip, http_api_port=data['http_api_port'], in_active_set=True, layer=data['layer'],
+                                    updated_on=now, created_on=now
                                     ).on_conflict(action="update", conflict_target=[Mixnodes.ip],
-                                                  update={'ip': ip, 'http_api_port': data['http_api_port'], "in_active_set": True,
-                                                          "layer": data['layer'],'updated_on': datetime.utcnow()}).execute()
+                                                  update={'ip': ip, 'http_api_port': data['http_api_port'],
+                                                          "in_active_set": True,
+                                                          "layer": data['layer'],
+                                                          'updated_on': datetime.utcnow()}).execute()
         except IntegrityError as e:
             print(e)
             print(traceback.format_exc())
@@ -103,6 +106,7 @@ class BaseModel(Model):
             return False
         finally:
             self.close()
+
     def updateCheckSet(self):
         self.connect()
 
@@ -124,7 +128,8 @@ class BaseModel(Model):
 
         try:
             with database.atomic():
-                Mixnodes.update(packets_mixed=num_packets, updated_on=datetime.utcnow()).where(Mixnodes.ip == ip).execute()
+                Mixnodes.update(packets_mixed=num_packets, updated_on=datetime.utcnow()).where(
+                    Mixnodes.ip == ip).execute()
         except IntegrityError as e:
             logHandler.exception(e)
             return False
@@ -134,14 +139,14 @@ class BaseModel(Model):
         finally:
             self.close()
 
-    def updateTotalPackets(self, num_packets_received, num_packets_sent,avg_update):
+    def updateTotalPackets(self, num_packets_received, num_packets_sent, avg_update):
         self.connect()
 
         try:
             with database.atomic():
                 if num_packets_received:
                     PacketsMixed.insert(total_packets_received=num_packets_received,
-                                        total_packets_sent=num_packets_sent,update_packets_avg=avg_update).execute()
+                                        total_packets_sent=num_packets_sent, update_packets_avg=avg_update).execute()
         except IntegrityError as e:
             logHandler.exception(e)
             return False
@@ -168,13 +173,14 @@ class BaseModel(Model):
 
         return data
 
-    def getActiveSet(self,layer=None):
+    def getActiveSet(self, layer=None):
         self.connect()
 
         try:
             with database.atomic():
                 if layer is not None:
-                    data = list(Mixnodes.select().where((Mixnodes.in_active_set == True) & (Mixnodes.layer == layer)).dicts())
+                    data = list(
+                        Mixnodes.select().where((Mixnodes.in_active_set == True) & (Mixnodes.layer == layer)).dicts())
                 else:
                     data = list(Mixnodes.select().where(Mixnodes.in_active_set == True).dicts())
 
@@ -194,7 +200,8 @@ class BaseModel(Model):
 
         try:
             with database.atomic():
-                data = list(Mixnodes.select().where((Mixnodes.in_check_set == True) & (Mixnodes.packets_mixed <= 0)).dicts())
+                data = list(
+                    Mixnodes.select().where((Mixnodes.in_check_set == True) & (Mixnodes.packets_mixed <= 0)).dicts())
         except IntegrityError as e:
             logHandler.exception(e)
             return False
@@ -227,7 +234,7 @@ class BaseModel(Model):
 
         try:
             with database.atomic():
-                    return list(State.select().order_by(State.created_on.desc()).limit(1).dicts())
+                return list(State.select().order_by(State.created_on.desc()).limit(1).dicts())
 
         except IntegrityError as e:
             logHandler.exception(e)
