@@ -102,7 +102,7 @@ class Mixnet:
                 data = await asyncio.gather(*urls, return_exceptions=True)
 
             allLayerData.update({layer: data})
-        pprint(allLayerData)
+
         for layer in range(1, utils.NUM_LAYER + 1):
             for stats in allLayerData[layer]:
                 # type must be tested because fetch method could return Timeout object
