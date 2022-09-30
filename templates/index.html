@@ -95,8 +95,9 @@ ul.no-bullets {
 
 </style>
 
-
+  <input type="checkbox" id="autoUpdate" onchange="updateSelection(this)" >Auto update
 <h2 style="text-align: center;padding-left: 1em;">Is mixnet working ?</h2>
+
    <span class="dotOk" id="dotMixnet"></span> <a  href="https://explorer.nymtech.net/">Nym's mixnet</a> is <b id="state">working</b> <a id="uptime"></a>
 <br/>
 <ul class="no-bullets">
@@ -237,13 +238,21 @@ async function updatePkts() {
 updateAllEvents()
 
 function updateAllEvents(){
+console.log("Autoupdate");
 updatePkts();
 updateEpoch();
 updateStates();
 }
 
-// update every 1 minute
-setInterval(updateAllEvents, 100000);
+
+function updateSelection(autoUpdateCheckBox){
+   if (autoUpdateCheckBox.checked)
+    intervalUpdate=setInterval(updateAllEvents, 30000);
+   else
+    clearInterval(intervalUpdate);
+
+};
+
 </script>
 </body>
 
