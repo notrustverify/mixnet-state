@@ -27,7 +27,7 @@ class Mixnet:
         self.db = BaseModel()
         self.timeoutMixnode = 5
 
-    def getActiveSetNodes(self, firstRun=False):
+    def getActiveSetNodes(self, firstRun=True):
         if not firstRun:
             try:
                 packetsLastUpdate = self.db.getLastMixedPackets()[0]['updated_on']
