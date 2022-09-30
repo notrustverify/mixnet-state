@@ -11,10 +11,13 @@ load_dotenv()
 VALIDATOR_API_BASE = "https://validator.nymtech.net/api/v1"
 
 ENDPOINT_PACKETS_MIXED = "stats"
+DEBUG = os.getenv("DEBUG",False)
 
 API_URL = os.getenv("API_URL_BASE")
 NYM_VALIDATOR_API_BASE = os.getenv("NYM_VALIDATOR_API_BASE")
 NYM_RPC = os.getenv("NYM_RPC")
+NUM_LAYER = 3
+
 
 UPDATE_MINUTES_STATE = float(os.getenv("UPDATE_MINUTES_STATE", 3))
 UPDATE_MINUTES_CHECK_SET = float(os.getenv("UPDATE_MINUTES_CHECK_SET", 10))
@@ -56,8 +59,8 @@ def getNextEpoch():
         return None
 
 
-async def fetch(session, url):
-    async with session.get(url, allow_redirects=True, timeout=30) as resp:
+async def fetch(session, url,timeout=30):
+    async with session.get(url, allow_redirects=True, timeout=timeout) as resp:
         try:
             return await resp.json() if resp.ok else None
         except (requests.RequestException, asyncio.TimeoutError) as e:

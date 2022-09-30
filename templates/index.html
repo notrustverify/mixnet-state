@@ -200,7 +200,7 @@ async function updateStates() {
 
   document.getElementById("epochId").innerHTML = JSON.stringify(states.epoch_id);
   document.getElementById("lastUpdate").innerHTML = dayjs(JSON.stringify(states.last_update).slice(1,-1)).format("lll");
-  document.getElementById("uptime").innerHTML = "since " + dayjs(JSON.stringify(states.last_downtime).slice(1,-1)).fromNow().replace("in","");
+  document.getElementById("uptime").innerHTML = "since " + dayjs(JSON.stringify(states.last_downtime).slice(1,-1)).fromNow(true);
 
 }
 
@@ -235,7 +235,7 @@ async function updatePkts() {
 
 }
 
-updateAllEvents()
+updateAllEvents();
 
 function updateAllEvents(){
 console.log("Autoupdate");
@@ -246,11 +246,15 @@ updateStates();
 
 
 function updateSelection(autoUpdateCheckBox){
-   if (autoUpdateCheckBox.checked)
+   if (autoUpdateCheckBox.checked){
+    updateAllEvents();
     intervalUpdate=setInterval(updateAllEvents, 30000);
+    }
    else
-    clearInterval(intervalUpdate);
-
+   {
+    if (typeof intervalUpdate !== 'undefined')
+        clearInterval(intervalUpdate);
+    }
 };
 
 </script>

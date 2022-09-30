@@ -11,11 +11,12 @@ if __name__ == '__main__':
     state = State()
     mixnet = Mixnet()
     db = BaseModel()
-    asyncio.run(state.getConcurrentPacketsMixed())
+    #asyncio.run(state.getConcurrentPacketsMixed())
     #print(db.BaseModel().getLastCrashDate())
     #state.setStates()
+    print(db.getMixnodesNoPacketMixed())
     while True:
-        mixnet.getActiveSetNodes()
+        mixnet.getActiveSetNodes(firstRun=True)
         asyncio.run(mixnet.getConcurrentPacketsMixed())
         mixnet.getDiffPacketsMixed()
 

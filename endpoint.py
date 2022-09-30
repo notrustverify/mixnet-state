@@ -83,8 +83,8 @@ class MixnetStats(Resource):
                 "packets_sent": packetsMixed['total_packets_sent'],
                 "mixnet_bytes_received": payload_received,
                 "mixnet_bytes_sent": payload_sent,
-                "mixnet_speed_bytes_sec_received": payload_received / utils.UPDATE_SECONDS_PACKETS,
-                "mixnet_speed_bytes_sec_sent": payload_sent / utils.UPDATE_SECONDS_PACKETS,
+                "mixnet_speed_bytes_sec_received": payload_received / packetsMixed['update_packets_avg'],
+                "mixnet_speed_bytes_sec_sent": payload_sent / packetsMixed['update_packets_avg'],
                 "spinx_packet_bytes": utils.SPHINX_PACKET_SIZE_BYTES,
                 "spinx_packet_payload_bytes": utils.SPHINX_PACKET_PAYLOAD_BYTES,
                 "last_update": packetsMixed['created_on']
@@ -103,6 +103,7 @@ def update():
     # update check set at start
     mixnetState.getMixnodes()
     mixnet.getActiveSetNodes(firstRun=True)
+    mixnetState.setStates()
     print(f"{datetime.now()} - update end")
 
     schedule.every(utils.UPDATE_MINUTES_CHECK_SET).minutes.do(mixnetState.getMixnodes)

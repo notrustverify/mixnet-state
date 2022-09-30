@@ -48,12 +48,12 @@ class BaseModel(Model):
         try:
             with database.atomic():
                 for ip, port in ips.items():
-                    now = datetime.now()
+                    now = datetime.utcnow()
 
                     Mixnodes.insert(ip=ip, http_api_port=port, in_check_set=True, updated_on=now, created_on=now
                                     ).on_conflict(action="update", conflict_target=[Mixnodes.ip],
                                                   update={'ip': ip, 'http_api_port': port, "in_check_set": True,
-                                                          'updated_on': datetime.now()}).execute()
+                                                          'updated_on': datetime.utcnow()}).execute()
 
         except IntegrityError as e:
             print(e)
@@ -68,16 +68,15 @@ class BaseModel(Model):
 
     def insertActiveSet(self, ips):
         self.connect()
+
         try:
             with database.atomic():
-                for ip, port in ips.items():
-                    now = datetime.now()
-
-                    Mixnodes.insert(ip=ip, http_api_port=port, in_active_set=True, updated_on=now, created_on=now
+                for ip, data in ips.items():
+                    now = datetime.utcnow()
+                    Mixnodes.insert(ip=ip, http_api_port=data['http_api_port'], in_active_set=True, layer=data['layer'], updated_on=now, created_on=now
                                     ).on_conflict(action="update", conflict_target=[Mixnodes.ip],
-                                                  update={'ip': ip, 'http_api_port': port, "in_active_set": True,
-                                                          'updated_on': datetime.now()}).execute()
-
+                                                  update={'ip': ip, 'http_api_port': data['http_api_port'], "in_active_set": True,
+                                                          "layer": data['layer'],'updated_on': datetime.utcnow()}).execute()
         except IntegrityError as e:
             print(e)
             print(traceback.format_exc())
@@ -89,12 +88,27 @@ class BaseModel(Model):
         finally:
             self.close()
 
+    def updateActiveSet(self):
+        self.connect()
+
+        try:
+            with database.atomic():
+                Mixnodes.update(in_active_set=False, updated_on=datetime.utcnow()).where(
+                    Mixnodes.in_active_set == True).execute()
+        except IntegrityError as e:
+            logHandler.exception(e)
+            return False
+        except DoesNotExist as e:
+            logHandler.exception(e)
+            return False
+        finally:
+            self.close()
     def updateCheckSet(self):
         self.connect()
 
         try:
             with database.atomic():
-                Mixnodes.update(in_check_set=False, updated_on=datetime.now()).where(
+                Mixnodes.update(in_check_set=False, updated_on=datetime.utcnow()).where(
                     Mixnodes.in_check_set == True).execute()
         except IntegrityError as e:
             logHandler.exception(e)
@@ -110,7 +124,7 @@ class BaseModel(Model):
 
         try:
             with database.atomic():
-                Mixnodes.update(packets_mixed=num_packets, updated_on=datetime.now()).where(Mixnodes.ip == ip).execute()
+                Mixnodes.update(packets_mixed=num_packets, updated_on=datetime.utcnow()).where(Mixnodes.ip == ip).execute()
         except IntegrityError as e:
             logHandler.exception(e)
             return False
@@ -154,12 +168,16 @@ class BaseModel(Model):
 
         return data
 
-    def getActiveSet(self):
+    def getActiveSet(self,layer=None):
         self.connect()
 
         try:
             with database.atomic():
-                data = [mixnode for mixnode in Mixnodes.select().where(Mixnodes.in_active_set == True).dicts()]
+                if layer is not None:
+                    data = list(Mixnodes.select().where((Mixnodes.in_active_set == True) & (Mixnodes.layer == layer)).dicts())
+                else:
+                    data = list(Mixnodes.select().where(Mixnodes.in_active_set == True).dicts())
+
         except IntegrityError as e:
             logHandler.exception(e)
             return False
@@ -176,8 +194,7 @@ class BaseModel(Model):
 
         try:
             with database.atomic():
-                data = [mixnode for mixnode in
-                        Mixnodes.select().where(Mixnodes.packets_mixed <= 0 & Mixnodes.in_check_set == True).dicts()]
+                data = list(Mixnodes.select().where((Mixnodes.in_check_set == True) & (Mixnodes.packets_mixed <= 0)).dicts())
         except IntegrityError as e:
             logHandler.exception(e)
             return False
@@ -297,6 +314,7 @@ class Mixnodes(BaseModel):
     ip = TextField(unique=True)
     http_api_port = IntegerField(default=8000)
     packets_mixed = FloatField(default=0)
+    layer = IntegerField(default=0)
     in_check_set = BooleanField(default=False)
     in_active_set = BooleanField(default=False)
 
