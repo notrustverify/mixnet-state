@@ -1,9 +1,8 @@
 import asyncio
 import datetime
-import json
-import sys
 import random
 import traceback
+import backoff
 
 import aiohttp
 
@@ -27,6 +26,8 @@ class State:
         self.timeoutValidator = 45
         self.timeoutRPC = 45
 
+    @backoff.on_exception(backoff.expo,
+                          requests.exceptions.RequestException, max_time=30, max_tries=2)
     def getMixnodes(self):
         s = requests.Session()
         ipsPort = dict()

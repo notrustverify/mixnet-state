@@ -5,6 +5,8 @@ import random
 import traceback
 from functools import reduce
 from pprint import pprint
+
+import backoff
 from dateutil import parser
 import aiohttp
 import requests
@@ -27,6 +29,8 @@ class Mixnet:
         self.db = BaseModel()
         self.timeoutMixnode = 5
 
+    @backoff.on_exception(backoff.expo,
+                          requests.exceptions.RequestException,max_time=30,max_tries=2)
     def getActiveSetNodes(self, firstRun=True):
         if not firstRun:
             try:
@@ -87,11 +91,13 @@ class Mixnet:
                 print(e)
 
     async def getConcurrentPacketsMixed(self):
+        self.getActiveSetNodes()
+
         allLayerData = {}
         timeUpdate = []
         totalPktsRecv = 0
         totalPktsSent = 0
-        totalPktsByLayer = {"Recv": {1: 0, 2: 0, 3: 0}, "Sent": {1: 0, 2: 0, 3: 0}}
+        totalPktsByLayer = {"recv": {1: 0, 2: 0, 3: 0}, "sent": {1: 0, 2: 0, 3: 0}}
 
         for layer in range(1, utils.NUM_LAYER + 1):
             ips = [f"http://{ip['ip']}:{ip['http_api_port']}/{utils.ENDPOINT_PACKETS_MIXED}" for ip in
@@ -114,8 +120,8 @@ class Mixnet:
                         totalPktsRecv += stats.get('packets_received_since_last_update')
                         totalPktsSent += stats.get('packets_sent_since_last_update')
 
-                        totalPktsByLayer["Recv"][layer] += stats.get('packets_received_since_last_update')
-                        totalPktsByLayer["Sent"][layer] += stats.get('packets_sent_since_last_update')
+                        totalPktsByLayer["recv"][layer] += stats.get('packets_received_since_last_update')
+                        totalPktsByLayer["sent"][layer] += stats.get('packets_sent_since_last_update')
 
                         updateTime = parser.isoparse(stats.get('update_time'))
                         previousUpdateTime = parser.isoparse(stats.get('previous_update_time'))
@@ -130,16 +136,16 @@ class Mixnet:
         if utils.DEBUG:
             for layer in range(1, 4):
                 if layer == 1:
-                    print(f"Received from outside {totalPktsByLayer['Recv'][layer]} pkts")
-                    print(f"Sent from layer {layer} to layer {layer + 1} --> {totalPktsByLayer['Sent'][layer]} pkts ")
+                    print(f"Received from outside {totalPktsByLayer['recv'][layer]} pkts")
+                    print(f"Sent from layer {layer} to layer {layer + 1} --> {totalPktsByLayer['sent'][layer]} pkts ")
                 elif layer == 2:
                     print(
-                        f"Received from layer {layer - 1} {totalPktsByLayer['Recv'][layer]} pkts (loss {abs(totalPktsByLayer['Sent'][layer - 1] - totalPktsByLayer['Recv'][layer])} pkts)")
-                    print(f"Sent from layer {layer} to layer {layer + 1} --> {totalPktsByLayer['Recv'][layer]} pkts")
+                        f"Received from layer {layer - 1} {totalPktsByLayer['recv'][layer]} pkts (loss {abs(totalPktsByLayer['sent'][layer - 1] - totalPktsByLayer['recv'][layer])} pkts)")
+                    print(f"Sent from layer {layer} to layer {layer + 1} --> {totalPktsByLayer['recv'][layer]} pkts")
                 else:
                     print(
-                        f"Received from layer {layer - 1} {totalPktsByLayer['Recv'][layer]} pkts (loss {abs(totalPktsByLayer['Sent'][layer - 1] - totalPktsByLayer['Recv'][layer])} pkts) ")
-                    print(f"Sent from layer {layer} to outside {totalPktsByLayer['Sent'][layer]} pkts")
+                        f"Received from layer {layer - 1} {totalPktsByLayer['recv'][layer]} pkts (loss {abs(totalPktsByLayer['sent'][layer - 1] - totalPktsByLayer['recv'][layer])} pkts) ")
+                    print(f"Sent from layer {layer} to outside {totalPktsByLayer['sent'][layer]} pkts")
 
         self.db.updateTotalPackets(totalPktsRecv, totalPktsSent, avgTimeUpdate)
 
