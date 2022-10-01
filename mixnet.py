@@ -1,20 +1,14 @@
+import asyncio
 import datetime
-import json
-import sys
-import random
 import traceback
 from functools import reduce
-from pprint import pprint
 
-import backoff
-from dateutil import parser
 import aiohttp
+import backoff
 import requests
-from aiohttp import ClientTimeout
+from dateutil import parser
 
 import utils
-import asyncio
-
 from db import BaseModel
 
 
@@ -28,6 +22,9 @@ class Mixnet:
         # https://validator.nymtech.net/api/v1/openapi.json
         self.db = BaseModel()
         self.timeoutMixnode = 5
+        self.estimatedQueryTime=15
+        # it's more 10 seconds but taking a delta
+        self.estimatedEpochChangeTime = 60
 
     @backoff.on_exception(backoff.expo,
                           requests.exceptions.RequestException,max_time=30,max_tries=2)
@@ -91,6 +88,19 @@ class Mixnet:
                 print(e)
 
     async def getConcurrentPacketsMixed(self):
+        epochTimeChange = utils.getNextEpoch()
+        epochTimeChangeFromStart = utils.getNextEpoch(fromStart=True)
+        now = datetime.datetime.utcnow()
+
+        # during epoch change no measurement could be done because of the active set change
+        # it takes around 10-15 to querying the nodes, so if the end of the epoch happen during the polling
+        # we could querying some nodes who's not in the active anymore
+        if now.timestamp()+self.estimatedQueryTime >= epochTimeChange or now.timestamp() <= epochTimeChangeFromStart+self.estimatedEpochChangeTime:
+            print(f"{datetime.datetime.utcnow()} - No update during epoch change")
+            return
+        print(f"Next epoch {datetime.datetime.fromtimestamp(epochTimeChange)} Epoch time {datetime.datetime.fromtimestamp(epochTimeChangeFromStart+self.estimatedEpochChangeTime)} "
+              f"\n Now {now} Delayed {datetime.datetime.fromtimestamp(now.timestamp() + self.estimatedQueryTime)}")
+        start = now
         self.getActiveSetNodes()
 
         allLayerData = {}
@@ -148,6 +158,6 @@ class Mixnet:
                     print(f"Sent from layer {layer} to outside {totalPktsByLayer['sent'][layer]} pkts")
 
         self.db.updateTotalPackets(totalPktsRecv, totalPktsSent, avgTimeUpdate)
-
+        self.estimatedQueryTime = datetime.datetime.utcnow().timestamp() - start.timestamp()
         print(
-            f"{datetime.datetime.now()} - update mixed packets end. Pkts avg mixnodes update {reduce(lambda a, b: a + b, timeUpdate) / len(timeUpdate)}s")
+            f"{datetime.datetime.now()} - func run in {self.estimatedQueryTime} update mixed packets end. Pkts avg mixnodes update {reduce(lambda a, b: a + b, timeUpdate) / len(timeUpdate)}s")

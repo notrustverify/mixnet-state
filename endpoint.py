@@ -1,23 +1,24 @@
 import threading
 import time
 import traceback
-from datetime import datetime, date, timedelta
+from datetime import datetime
 from os.path import exists
+
 import schedule
-from dotenv import load_dotenv
-from flask import Flask, request, jsonify, render_template, Response
-from flask_restful import Resource, Api, abort
 from cachetools import cached, TTLCache
+from flask import Flask, jsonify, render_template
+from flask_restful import Resource, Api, abort, fields
+
 import utils
-import db
+from db import BaseModel
 from mixnet import Mixnet
 from state import State
-
-from db import BaseModel
 
 cache = TTLCache(maxsize=10 ** 9, ttl=120)
 app = Flask(__name__)
 api = Api(app)
+db = BaseModel()
+
 
 
 @app.route('/')
@@ -37,7 +38,7 @@ class MixnetState(Resource):
     @cached(cache={})
     def read_data(self):
         data = {}
-        db = BaseModel()
+
         try:
             states = db.getState()[0]
             uptime = db.getLastCrashDate()
@@ -70,8 +71,6 @@ class MixnetStats(Resource):
     @cached(cache={})
     def read_data(self):
         data = {}
-        db = BaseModel()
-
 
         try:
             packetsMixed = db.getLastMixedPackets()[0]
@@ -109,7 +108,7 @@ def update():
     schedule.every(utils.UPDATE_MINUTES_CHECK_SET).minutes.do(mixnetState.getMixnodes)
     schedule.every(utils.UPDATE_MINUTES_STATE).minutes.do(mixnetState.setStates)
     schedule.every(utils.UPDATE_SECONDS_PACKET_MIXED).seconds.do(mixnet.getPacketsMixnode)
-    #schedule.every(utils.UPDATE_SECONDS_ACTIVE_SET).seconds.do(mixnet.getActiveSetNodes)
+    # schedule.every(utils.UPDATE_SECONDS_ACTIVE_SET).seconds.do(mixnet.getActiveSetNodes)
 
     while True:
         schedule.run_pending()
@@ -128,4 +127,4 @@ if not (exists("./data/data.db")):
 if __name__ == '__main__':
     host = '0.0.0.0'
 
-    app.run(debug=False, port='8080', host=host)
+    app.run(debug=False, port=8080, host=host)

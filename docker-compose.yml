@@ -15,7 +15,7 @@ services:
     restart: unless-stopped
     env_file: .env
     ports:
-      - 5003:5002
+      - "5003:5002"
     networks:
       - traefik-proxy
     volumes:

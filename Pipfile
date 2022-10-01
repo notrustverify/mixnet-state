@@ -9,12 +9,13 @@ requests = "*"
 schedule = "*"
 flask = "*"
 cachetools = "*"
-Flask-RESTful = "*"
+flask-restful = "*"
 python-dotenv = "*"
 gunicorn = "*"
 aiohttp = "*"
 python-dateutil = "*"
 backoff = "*"
+
 
 [dev-packages]
 

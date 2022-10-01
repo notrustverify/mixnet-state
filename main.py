@@ -2,10 +2,8 @@ import asyncio
 import time
 
 from db import BaseModel
-from state import State
 from mixnet import Mixnet
-import utils
-
+from state import State
 
 if __name__ == '__main__':
     state = State()

@@ -39,7 +39,7 @@ def format_bytes(size):
     return f"{size} {power_labels[n] + 'B'}"
 
 
-def getNextEpoch():
+def getNextEpoch(fromStart=False):
     s = requests.Session()
     currentEpoch = 0
     epochLength = 0
@@ -51,7 +51,8 @@ def getNextEpoch():
             if epoch.get('start'):
                 currentEpoch = datetime.datetime.strptime(epoch.get('start'), "%Y-%m-%dT%H:%M:%SZ")
                 epochLength = epoch['length'].get('secs')
-
+            if fromStart:
+                return currentEpoch.timestamp()
             return currentEpoch.timestamp() + epochLength
 
     except requests.RequestException as e:
