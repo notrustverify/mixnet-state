@@ -52,7 +52,7 @@ def getNextEpoch(fromStart=False):
                 currentEpoch = datetime.datetime.strptime(epoch.get('start'), "%Y-%m-%dT%H:%M:%SZ")
                 epochLength = epoch['length'].get('secs')
             if fromStart:
-                return currentEpoch.timestamp()
+                return currentEpoch.timestamp(),currentEpoch.timestamp() + epochLength
             return currentEpoch.timestamp() + epochLength
 
     except requests.RequestException as e:

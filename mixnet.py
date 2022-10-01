@@ -88,8 +88,7 @@ class Mixnet:
                 print(e)
 
     async def getConcurrentPacketsMixed(self):
-        epochTimeChange = utils.getNextEpoch()
-        epochTimeChangeFromStart = utils.getNextEpoch(fromStart=True)
+        epochTimeChangeFromStart,epochTimeChange = utils.getNextEpoch(fromStart=True)
         now = datetime.datetime.utcnow()
 
         # during epoch change no measurement could be done because of the active set change
