@@ -32,7 +32,7 @@ class State:
         s = requests.Session()
         ipsPort = dict()
         selected = dict()
-        print(f"{datetime.datetime.now()} - update check set")
+        print(f"{datetime.datetime.utcnow()} - update check set")
         try:
             response = s.get(f"{utils.NYM_VALIDATOR_API_BASE}/api/v1/mixnodes/active")
 
@@ -118,10 +118,10 @@ class State:
         # set mixnet to false if number of mixnode mixed packet lower thant a certain %
         if len(mixnodes) / self.numberMixnodeCheckSet >= (State.MIN_PERCENT_NODE / 100.0):
             print(mixnodes, len(mixnodes))
-            print(f"{datetime.datetime.now()} Mixnet nok")
+            print(f"{datetime.datetime.utcnow()} Mixnet nok")
             return False
 
-        print(f"{datetime.datetime.now()} Mixnet ok")
+        print(f"{datetime.datetime.utcnow()} Mixnet ok")
         return True
 
     def getValidatorState(self):
@@ -133,10 +133,10 @@ class State:
         except requests.RequestException as e:
             print(traceback.format_exc())
             print(e)
-            print(f"{datetime.datetime.now()} Validator nok")
+            print(f"{datetime.datetime.utcnow()} Validator nok")
             return False
 
-        print(f"{datetime.datetime.now()} Validator ok")
+        print(f"{datetime.datetime.utcnow()} Validator ok")
         return True
 
     def getRPCState(self):
@@ -148,18 +148,18 @@ class State:
                 state = response.json()
 
                 if "error" in state:
-                    print(f"{datetime.datetime.now()} RPC nok")
+                    print(f"{datetime.datetime.utcnow()} RPC nok")
                     return False
             else:
-                print(f"{datetime.datetime.now()} RPC nok")
+                print(f"{datetime.datetime.utcnow()} RPC nok")
                 return False
         except requests.RequestException as e:
             print(traceback.format_exc())
             print(e)
-            print(f"{datetime.datetime.now()} RPC nok")
+            print(f"{datetime.datetime.utcnow()} RPC nok")
             return False
 
-        print(f"{datetime.datetime.now()} RPC ok")
+        print(f"{datetime.datetime.utcnow()} RPC ok")
         return True
 
     def getEpochState(self):
@@ -173,25 +173,25 @@ class State:
                 state = response.json()
 
                 if state.get('length'):
-                    now = datetime.datetime.utcnow()
+                    now = datetime.datetime.utcutcnow()
                     epochLength = state['length']['secs']
                     epochStart = datetime.datetime.fromisoformat(state['start'].replace('Z', ''))
                     epochId = state['id']
 
                     if now > epochStart + datetime.timedelta(seconds=epochLength):
-                        print(f"{datetime.datetime.now()} Epoch nok")
+                        print(f"{datetime.datetime.utcnow()} Epoch nok")
                         return False, epochId
             else:
-                print(f"{datetime.datetime.now()} Epoch nok")
+                print(f"{datetime.datetime.utcnow()} Epoch nok")
                 return False, 0
 
         except requests.RequestException as e:
             print(traceback.format_exc())
             print(e)
-            print(f"{datetime.datetime.now()} Epoch nok")
+            print(f"{datetime.datetime.utcnow()} Epoch nok")
             return False, 0
 
-        print(f"{datetime.datetime.now()} Epoch ok")
+        print(f"{datetime.datetime.utcnow()} Epoch ok")
         return True, epochId
 
     def setStates(self):

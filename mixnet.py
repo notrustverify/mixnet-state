@@ -38,7 +38,7 @@ class Mixnet:
             except KeyError and IndexError:
                 print(traceback.format_exc())
 
-        self.db.updateActiveSet()
+
         s = requests.Session()
         ipsPort = dict()
 
@@ -48,6 +48,7 @@ class Mixnet:
             response = s.get(f"{utils.NYM_VALIDATOR_API_BASE}/api/v1/mixnodes/active")
             count = {1: 0, 2: 0, 3: 0}
             if response.ok:
+                self.db.updateActiveSet()
                 activeSet = response.json()
 
                 for mixnode in activeSet:
@@ -94,11 +95,11 @@ class Mixnet:
         # during epoch change no measurement could be done because of the active set change
         # it takes around 10-15 to querying the nodes, so if the end of the epoch happen during the polling
         # we could querying some nodes who's not in the active anymore
-        if now.timestamp()+self.estimatedQueryTime+utils.UPDATE_SECONDS_PACKETS >= epochTimeChange or now.timestamp() <= epochTimeChangeFromStart+self.estimatedEpochChangeTime:
+        if now.timestamp()+self.estimatedQueryTime >= epochTimeChange or now.timestamp() <= epochTimeChangeFromStart+self.estimatedEpochChangeTime:
             print(f"{datetime.datetime.utcnow()} - No update during epoch change")
             return
         print(f"Next epoch {datetime.datetime.fromtimestamp(epochTimeChange)} Epoch time {datetime.datetime.fromtimestamp(epochTimeChangeFromStart+self.estimatedEpochChangeTime)} "
-              f"\n Now {now} Delayed {datetime.datetime.fromtimestamp(now.timestamp() + self.estimatedQueryTime+utils.UPDATE_SECONDS_PACKETS)}")
+              f"\n Now {now} Delayed {datetime.datetime.fromtimestamp(now.timestamp() + self.estimatedQueryTime)}")
         start = now
         self.getActiveSetNodes()
 
