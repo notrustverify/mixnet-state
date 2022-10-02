@@ -24,7 +24,7 @@ class Mixnet:
         self.timeoutMixnode = 5
         self.estimatedQueryTime=15
         # it's more 10 seconds but taking a delta
-        self.estimatedEpochChangeTime = 60
+        self.estimatedEpochChangeTime = utils.NYM_EPOCH_UPDATE
 
     @backoff.on_exception(backoff.expo,
                           requests.exceptions.RequestException,max_time=30,max_tries=2)
@@ -94,11 +94,11 @@ class Mixnet:
         # during epoch change no measurement could be done because of the active set change
         # it takes around 10-15 to querying the nodes, so if the end of the epoch happen during the polling
         # we could querying some nodes who's not in the active anymore
-        if now.timestamp()+self.estimatedQueryTime >= epochTimeChange or now.timestamp() <= epochTimeChangeFromStart+self.estimatedEpochChangeTime:
+        if now.timestamp()+self.estimatedQueryTime+utils.UPDATE_SECONDS_PACKETS >= epochTimeChange or now.timestamp() <= epochTimeChangeFromStart+self.estimatedEpochChangeTime:
             print(f"{datetime.datetime.utcnow()} - No update during epoch change")
             return
         print(f"Next epoch {datetime.datetime.fromtimestamp(epochTimeChange)} Epoch time {datetime.datetime.fromtimestamp(epochTimeChangeFromStart+self.estimatedEpochChangeTime)} "
-              f"\n Now {now} Delayed {datetime.datetime.fromtimestamp(now.timestamp() + self.estimatedQueryTime)}")
+              f"\n Now {now} Delayed {datetime.datetime.fromtimestamp(now.timestamp() + self.estimatedQueryTime+utils.UPDATE_SECONDS_PACKETS)}")
         start = now
         self.getActiveSetNodes()
 
