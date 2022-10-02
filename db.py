@@ -138,14 +138,14 @@ class BaseModel(Model):
         finally:
             self.close()
 
-    def updateTotalPackets(self, num_packets_received, num_packets_sent, avg_update):
+    def updateTotalPackets(self, num_packets_received, num_packets_sent, avg_update,update_query_mixnode):
         self.connect()
 
         try:
             with database.atomic():
                 if num_packets_received:
                     PacketsMixed.insert(total_packets_received=num_packets_received,
-                                        total_packets_sent=num_packets_sent, update_packets_avg=avg_update).execute()
+                                        total_packets_sent=num_packets_sent, update_packets_avg=avg_update,update_query_mixnode=update_query_mixnode).execute()
         except IntegrityError as e:
             logHandler.exception(e)
             return False
@@ -336,7 +336,7 @@ class PacketsMixed(BaseModel):
     total_packets_received = FloatField(default=0)
     total_packets_sent = FloatField(default=0)
     update_packets_avg = FloatField(default=0)
-
+    update_query_mixnode = FloatField(default=0)
     created_on = DateTimeField(default=datetime.utcnow)
     updated_on = DateTimeField(default=datetime.utcnow)
 

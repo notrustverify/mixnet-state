@@ -86,7 +86,8 @@ class MixnetStats(Resource):
                 "mixnet_speed_bytes_sec_sent": payload_sent / packetsMixed['update_packets_avg'],
                 "spinx_packet_bytes": utils.SPHINX_PACKET_SIZE_BYTES,
                 "spinx_packet_payload_bytes": utils.SPHINX_PACKET_PAYLOAD_BYTES,
-                "last_update": packetsMixed['created_on']
+                "last_update": packetsMixed['created_on'],
+                "query_second_update_mixnode": packetsMixed['update_query_mixnode']
             })
 
             return data

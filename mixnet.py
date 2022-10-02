@@ -157,7 +157,8 @@ class Mixnet:
                         f"Received from layer {layer - 1} {totalPktsByLayer['recv'][layer]} pkts (loss {abs(totalPktsByLayer['sent'][layer - 1] - totalPktsByLayer['recv'][layer])} pkts) ")
                     print(f"Sent from layer {layer} to outside {totalPktsByLayer['sent'][layer]} pkts")
 
-        self.db.updateTotalPackets(totalPktsRecv, totalPktsSent, avgTimeUpdate)
         self.estimatedQueryTime = datetime.datetime.utcnow().timestamp() - start.timestamp()
+        self.db.updateTotalPackets(totalPktsRecv, totalPktsSent, avgTimeUpdate,self.estimatedQueryTime)
+
         print(
             f"{datetime.datetime.now()} - func run in {self.estimatedQueryTime} update mixed packets end. Pkts avg mixnodes update {reduce(lambda a, b: a + b, timeUpdate) / len(timeUpdate)}s")
