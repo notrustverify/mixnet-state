@@ -12,6 +12,8 @@ VALIDATOR_API_BASE = "https://validator.nymtech.net/api/v1"
 
 ENDPOINT_PACKETS_MIXED = "stats"
 DEBUG = os.getenv("DEBUG",False)
+UPDATE_ALL_MIXNODES = os.getenv("UPDATE_ALL_MIXNODES",True)
+
 
 API_URL = os.getenv("API_URL_BASE")
 NYM_VALIDATOR_API_BASE = os.getenv("NYM_VALIDATOR_API_BASE")
