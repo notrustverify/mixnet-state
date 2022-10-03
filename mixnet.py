@@ -45,8 +45,10 @@ class Mixnet:
         print(f"{datetime.datetime.now()} - update active set")
 
         try:
-            #response = s.get(f"{utils.NYM_VALIDATOR_API_BASE}/api/v1/mixnodes/active")
-            response = s.get(f"{utils.NYM_VALIDATOR_API_BASE}/api/v1/mixnodes/")
+            response = s.get(f"{utils.NYM_VALIDATOR_API_BASE}/api/v1/mixnodes/active")
+            if utils.UPDATE_ALL_MIXNODES:
+                response = s.get(f"{utils.NYM_VALIDATOR_API_BASE}/api/v1/mixnodes/")
+                
             count = {1: 0, 2: 0, 3: 0}
             if response.ok:
                 self.db.updateActiveSet()
