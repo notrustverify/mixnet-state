@@ -105,6 +105,7 @@ class Mixnet:
 
         allLayerData = {}
         timeUpdate = []
+        errorCounter = 0
         totalPktsRecv = 0
         totalPktsSent = 0
         totalPktsByLayer = {"recv": {1: 0, 2: 0, 3: 0}, "sent": {1: 0, 2: 0, 3: 0}}
@@ -136,6 +137,8 @@ class Mixnet:
                         updateTime = parser.isoparse(stats.get('update_time'))
                         previousUpdateTime = parser.isoparse(stats.get('previous_update_time'))
                         timeUpdate.append(updateTime - previousUpdateTime)
+                else:
+                    errorCounter += 1
 
         avgTimeUpdate = reduce(lambda a, b: a + b, timeUpdate) / len(timeUpdate)
 
@@ -161,4 +164,4 @@ class Mixnet:
         self.db.updateTotalPackets(totalPktsRecv, totalPktsSent, avgTimeUpdate,self.estimatedQueryTime)
 
         print(
-            f"{datetime.datetime.now()} - func run in {self.estimatedQueryTime} update mixed packets end. Pkts avg mixnodes update {reduce(lambda a, b: a + b, timeUpdate) / len(timeUpdate)}s")
+            f"{datetime.datetime.now()} - func run in {self.estimatedQueryTime} update mixed packets end. Pkts avg mixnodes update {reduce(lambda a, b: a + b, timeUpdate) / len(timeUpdate)}s - error counter {errorCounter}")
