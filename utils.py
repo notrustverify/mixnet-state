@@ -57,7 +57,9 @@ def getNextEpoch(fromStart=False):
                 if fromStart:
                     return currentEpoch.timestamp(),currentEpoch.timestamp() + epochLength
                 return currentEpoch.timestamp() + epochLength
-
+        
+            return None
+    
     except requests.RequestException as e:
         print(traceback.format_exc())
         return None
