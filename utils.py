@@ -53,16 +53,14 @@ def getNextEpoch(fromStart=False):
             if epoch.get('start'):
                 currentEpoch = datetime.datetime.strptime(epoch.get('start'), "%Y-%m-%dT%H:%M:%SZ")
                 epochLength = epoch['length'].get('secs')
-                
-                if fromStart:
-                    return currentEpoch.timestamp(),currentEpoch.timestamp() + epochLength
-                return currentEpoch.timestamp() + epochLength
+
+                return currentEpoch.timestamp(),currentEpoch.timestamp() + epochLengthh
         
-            return None
+            return None,None
     
     except requests.RequestException as e:
         print(traceback.format_exc())
-        return None
+        return None,None
 
 
 async def fetch(session, url,timeout=30):
