@@ -95,13 +95,15 @@ class Mixnet:
     async def getConcurrentPacketsMixed(self):
         epochTimeChangeFromStart,epochTimeChange = utils.getNextEpoch()
         now = datetime.datetime.utcnow()
-
-        # during epoch change no measurement could be done because of the active set change
-        # it takes around 10-15 to querying the nodes, so if the end of the epoch happen during the polling
-        # we could querying some nodes who's not in the active anymore
-        if now.timestamp()+self.estimatedQueryTime >= epochTimeChange or now.timestamp() <= epochTimeChangeFromStart+self.estimatedEpochChangeTime:
-            print(f"{datetime.datetime.utcnow()} - No update during epoch change")
-            return
+        
+        if epochTimeChangeFromStart is not None and epochTimeChange is not None:
+            # during epoch change no measurement could be done because of the active set change
+            # it takes around 10-15 to querying the nodes, so if the end of the epoch happen during the polling
+            # we could querying some nodes who's not in the active anymore
+            if now.timestamp()+self.estimatedQueryTime >= epochTimeChange or now.timestamp() <= epochTimeChangeFromStart+self.estimatedEpochChangeTime:
+                print(f"{datetime.datetime.utcnow()} - No update during epoch change")
+                return
+            
         print(f"Next epoch {datetime.datetime.fromtimestamp(epochTimeChange)} Epoch time {datetime.datetime.fromtimestamp(epochTimeChangeFromStart+self.estimatedEpochChangeTime)} "
               f"\n Now {now} Delayed {datetime.datetime.fromtimestamp(now.timestamp() + self.estimatedQueryTime)}")
         start = now
