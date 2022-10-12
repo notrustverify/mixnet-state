@@ -32,8 +32,9 @@ class Mixnet:
         if not firstRun:
             try:
                 packetsLastUpdate = self.db.getLastMixedPackets()[0]['updated_on']
-                if utils.getNextEpoch() is not None and datetime.datetime.timestamp(
-                        packetsLastUpdate) < utils.getNextEpoch():
+                epochTimeChangeFromStart,epochTimeChange = utils.getNextEpoch()
+                if epochTimeChange is not None and datetime.datetime.timestamp(
+                        packetsLastUpdate) < epochTimeChange:
                     return
             except KeyError and IndexError:
                 print(traceback.format_exc())
@@ -92,7 +93,7 @@ class Mixnet:
                 print(e)
 
     async def getConcurrentPacketsMixed(self):
-        epochTimeChangeFromStart,epochTimeChange = utils.getNextEpoch(fromStart=True)
+        epochTimeChangeFromStart,epochTimeChange = utils.getNextEpoch()
         now = datetime.datetime.utcnow()
 
         # during epoch change no measurement could be done because of the active set change
