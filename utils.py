@@ -13,21 +13,23 @@ VALIDATOR_API_BASE = "https://validator.nymtech.net/api/v1"
 
 ENDPOINT_PACKETS_MIXED = "stats"
 DEBUG = os.getenv("DEBUG",False)
+UPDATE_ALL_MIXNODES = os.getenv("UPDATE_ALL_MIXNODES",False)
+
 
 API_URL = os.getenv("API_URL_BASE")
 NYM_VALIDATOR_API_BASE = os.getenv("NYM_VALIDATOR_API_BASE")
 NYM_RPC = os.getenv("NYM_RPC")
 NUM_LAYER = 3
-NYM_EPOCH_UPDATE = os.getenv("NYM_EPOCH_UPDATE",60)
+NYM_EPOCH_UPDATE = float(os.getenv("NYM_EPOCH_UPDATE",60))
 
 UPDATE_MINUTES_STATE = float(os.getenv("UPDATE_MINUTES_STATE", 3))
 UPDATE_MINUTES_CHECK_SET = float(os.getenv("UPDATE_MINUTES_CHECK_SET", 10))
 UPDATE_SECONDS_ACTIVE_SET = os.getenv("UPDATE_SECONDS_ACTIVE_SET", 30)
-UPDATE_SECONDS_PACKET_MIXED = 60
+UPDATE_SECONDS_PACKET_MIXED = os.getenv("UPDATE_SECONDS_PACKET_MIXED",30)
 UPDATE_SECONDS_PACKETS = os.getenv("UPDATE_SECONDS_PACKETS",30)
 
-SPHINX_PACKET_SIZE_BYTES = 1490
-SPHINX_PACKET_PAYLOAD_BYTES = 1424
+SPHINX_PACKET_SIZE_BYTES = float(os.getenv("SPHINX_PACKET_SIZE_BYTES",2145))
+SPHINX_PACKET_PAYLOAD_BYTES = float(os.getenv("SPHINX_PACKET_PAYLOAD_BYTES",2048))
 
 
 def format_bytes(size):
@@ -54,13 +56,14 @@ def getNextEpoch(fromStart=False):
             if epoch.get('start'):
                 currentEpoch = datetime.datetime.strptime(epoch.get('start'), "%Y-%m-%dT%H:%M:%SZ")
                 epochLength = epoch['length'].get('secs')
-            if fromStart:
-                return currentEpoch.timestamp(),currentEpoch.timestamp() + epochLength
-            return currentEpoch.timestamp() + epochLength
 
+                return currentEpoch.timestamp(),currentEpoch.timestamp() + epochLength
+        
+            return None,None
+    
     except requests.RequestException as e:
         print(traceback.format_exc())
-        return None
+        return None,None
 
 
 async def fetch(session, url,timeout=30):

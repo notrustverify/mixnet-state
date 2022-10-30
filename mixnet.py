@@ -32,8 +32,9 @@ class Mixnet:
         if not firstRun:
             try:
                 packetsLastUpdate = self.db.getLastMixedPackets()[0]['updated_on']
-                if utils.getNextEpoch() is not None and datetime.datetime.timestamp(
-                        packetsLastUpdate) < utils.getNextEpoch():
+                epochTimeChangeFromStart,epochTimeChange = utils.getNextEpoch()
+                if epochTimeChange is not None and datetime.datetime.timestamp(
+                        packetsLastUpdate) < epochTimeChange:
                     return
             except KeyError and IndexError:
                 print(traceback.format_exc())
@@ -46,6 +47,9 @@ class Mixnet:
 
         try:
             response = s.get(f"{utils.NYM_VALIDATOR_API_BASE}/api/v1/mixnodes/active")
+            if utils.UPDATE_ALL_MIXNODES:
+                response = s.get(f"{utils.NYM_VALIDATOR_API_BASE}/api/v1/mixnodes/")
+                
             count = {1: 0, 2: 0, 3: 0}
             if response.ok:
                 self.db.updateActiveSet()
@@ -89,19 +93,17 @@ class Mixnet:
                 print(e)
 
     async def getConcurrentPacketsMixed(self):
-        epochTimeChangeFromStart,epochTimeChange = utils.getNextEpoch(fromStart=True)
+        epochTimeChangeFromStart,epochTimeChange = utils.getNextEpoch()
         now = datetime.datetime.utcnow()
-
-        # during epoch change no measurement could be done because of the active set change
-        # it takes around 10-15 to querying the nodes, so if the end of the epoch happen during the polling
-        # we could querying some nodes who's not in the active anymore
-        if epochTimeChangeFromStart is None or epochTimeChange is None:
-            print(f"error with epoch, epochTimeChangeFromStart {epochTimeChangeFromStart} epochTimeChange {epochTimeChangeFromStart}")
-            exit()
-
-        if now.timestamp()+self.estimatedQueryTime >= epochTimeChange or now.timestamp() <= epochTimeChangeFromStart+self.estimatedEpochChangeTime:
-            print(f"{datetime.datetime.utcnow()} - No update during epoch change")
-            return
+        
+        if epochTimeChangeFromStart is not None and epochTimeChange is not None:
+            # during epoch change no measurement could be done because of the active set change
+            # it takes around 10-15 to querying the nodes, so if the end of the epoch happen during the polling
+            # we could querying some nodes who's not in the active anymore
+            if now.timestamp()+self.estimatedQueryTime >= epochTimeChange or now.timestamp() <= epochTimeChangeFromStart+self.estimatedEpochChangeTime:
+                print(f"{datetime.datetime.utcnow()} - No update during epoch change")
+                return
+            
         print(f"Next epoch {datetime.datetime.fromtimestamp(epochTimeChange)} Epoch time {datetime.datetime.fromtimestamp(epochTimeChangeFromStart+self.estimatedEpochChangeTime)} "
               f"\n Now {now} Delayed {datetime.datetime.fromtimestamp(now.timestamp() + self.estimatedQueryTime)}")
         start = now
@@ -109,6 +111,7 @@ class Mixnet:
 
         allLayerData = {}
         timeUpdate = []
+        errorCounter = 0
         totalPktsRecv = 0
         totalPktsSent = 0
         totalPktsByLayer = {"recv": {1: 0, 2: 0, 3: 0}, "sent": {1: 0, 2: 0, 3: 0}}
@@ -140,6 +143,8 @@ class Mixnet:
                         updateTime = parser.isoparse(stats.get('update_time'))
                         previousUpdateTime = parser.isoparse(stats.get('previous_update_time'))
                         timeUpdate.append(updateTime - previousUpdateTime)
+                else:
+                    errorCounter += 1
 
         avgTimeUpdate = reduce(lambda a, b: a + b, timeUpdate) / len(timeUpdate)
 
@@ -165,4 +170,4 @@ class Mixnet:
         self.db.updateTotalPackets(totalPktsRecv, totalPktsSent, avgTimeUpdate,self.estimatedQueryTime)
 
         print(
-            f"{datetime.datetime.now()} - func run in {self.estimatedQueryTime} update mixed packets end. Pkts avg mixnodes update {reduce(lambda a, b: a + b, timeUpdate) / len(timeUpdate)}s")
+            f"{datetime.datetime.now()} - func run in {self.estimatedQueryTime} update mixed packets end. Pkts avg mixnodes update {reduce(lambda a, b: a + b, timeUpdate) / len(timeUpdate)}s - error counter {errorCounter}")
