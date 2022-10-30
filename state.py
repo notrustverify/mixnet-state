@@ -162,6 +162,8 @@ class State:
         print(f"{datetime.datetime.utcnow()} RPC ok")
         return True
 
+    @backoff.on_exception(backoff.expo,
+                          requests.exceptions.RequestException, max_time=30, max_tries=2)
     def getEpochState(self):
         s = requests.Session()
         epochId = 0

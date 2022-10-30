@@ -95,6 +95,10 @@ class Mixnet:
         # during epoch change no measurement could be done because of the active set change
         # it takes around 10-15 to querying the nodes, so if the end of the epoch happen during the polling
         # we could querying some nodes who's not in the active anymore
+        if epochTimeChangeFromStart is None or epochTimeChange is None:
+            print(f"error with epoch, epochTimeChangeFromStart {epochTimeChangeFromStart} epochTimeChange {epochTimeChangeFromStart}")
+            exit()
+
         if now.timestamp()+self.estimatedQueryTime >= epochTimeChange or now.timestamp() <= epochTimeChangeFromStart+self.estimatedEpochChangeTime:
             print(f"{datetime.datetime.utcnow()} - No update during epoch change")
             return

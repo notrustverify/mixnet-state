@@ -3,6 +3,7 @@ import datetime
 import os
 import traceback
 
+import backoff
 import requests
 from dotenv import load_dotenv
 
@@ -39,6 +40,8 @@ def format_bytes(size):
     return f"{size} {power_labels[n] + 'B'}"
 
 
+@backoff.on_exception(backoff.expo,
+                          requests.exceptions.RequestException,max_time=30,max_tries=2)
 def getNextEpoch(fromStart=False):
     s = requests.Session()
     currentEpoch = 0
