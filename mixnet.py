@@ -93,9 +93,14 @@ class Mixnet:
                 print(e)
 
     async def getConcurrentPacketsMixed(self):
-        epochTimeChangeFromStart,epochTimeChange = utils.getNextEpoch()
-        now = datetime.datetime.utcnow()
-
+        try:
+            epochTimeChangeFromStart,epochTimeChange = utils.getNextEpoch()
+            now = datetime.datetime.utcnow()
+        except TypeError as e:
+            print(traceback.format_exc())
+            print(e)
+            return
+            
         try:
             if epochTimeChangeFromStart is not None and epochTimeChange is not None:
                 # during epoch change no measurement could be done because of the active set change
