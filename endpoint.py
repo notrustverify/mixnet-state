@@ -102,7 +102,7 @@ def update():
 
     # update check set at start
     mixnetState.getMixnodes()
-    mixnet.getActiveSetNodes(firstRun=True)
+    #mixnet.getActiveSetNodes(firstRun=True)
     #mixnetState.setStates()
     print(f"{datetime.now()} - update end")
 
