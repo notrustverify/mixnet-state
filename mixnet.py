@@ -60,7 +60,7 @@ class Mixnet:
                         count[mixnode['bond_information']['layer']] += 1
 
                         ipsPort.update({mixnode['bond_information']['mix_node']['host']: {
-                            'http_api_port': mixnode['bond_information']['mix_node']['http_api_port'], 'layer': mixnode['layer']}})
+                            'http_api_port': mixnode['bond_information']['mix_node']['http_api_port'], 'layer': mixnode['bond_information']['layer']}})
 
                 self.db.insertActiveSet(ipsPort)
                 print(f"Layer repartition {count}")
