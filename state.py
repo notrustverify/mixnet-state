@@ -178,7 +178,7 @@ class State:
                     now = datetime.datetime.utcnow()
                     epochLength = state['length']['secs']
                     epochStart = datetime.datetime.fromisoformat(state['start'].replace('Z', ''))
-                    epochId = state['id']
+                    epochId = state['current_epoch_id']
 
                     if now > epochStart + datetime.timedelta(seconds=epochLength):
                         print(f"{datetime.datetime.utcnow()} Epoch nok")
