@@ -102,7 +102,7 @@ class Mixnet:
             return
             
         try:
-            if epochTimeChangeFromStart is not None and epochTimeChange is not None:
+            if epochTimeChangeFromStart is not None or epochTimeChange is not None:
                 # during epoch change no measurement could be done because of the active set change
                 # it takes around 10-15 to querying the nodes, so if the end of the epoch happen during the polling
                 # we could querying some nodes who's not in the active anymore
