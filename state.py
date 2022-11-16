@@ -177,7 +177,7 @@ class State:
                 if state.get('epoch_length'):
                     now = datetime.datetime.utcnow()
                     epochLength = state['epoch_length']['secs']
-                    epochStart = datetime.datetime.fromisoformat(state['start'].replace('Z', ''))
+                    epochStart = datetime.datetime.fromisoformat(state['current_epoch_start'].replace('Z', ''))
                     epochId = state['current_epoch_id']
 
                     if now > epochStart + datetime.timedelta(seconds=epochLength):
