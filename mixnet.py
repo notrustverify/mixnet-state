@@ -56,11 +56,11 @@ class Mixnet:
                 activeSet = response.json()
 
                 for mixnode in activeSet:
-                    if mixnode.get('mix_node'):
-                        count[mixnode['layer']] += 1
+                    if mixnode.get('bond_information'):
+                        count[mixnode['bond_information']['layer']] += 1
 
-                        ipsPort.update({mixnode['mix_node']['host']: {
-                            'http_api_port': mixnode['mix_node']['http_api_port'], 'layer': mixnode['layer']}})
+                        ipsPort.update({mixnode['bond_information']['mix_node']['host']: {
+                            'http_api_port': mixnode['bond_information']['mix_node']['http_api_port'], 'layer': mixnode['layer']}})
 
                 self.db.insertActiveSet(ipsPort)
                 print(f"Layer repartition {count}")
