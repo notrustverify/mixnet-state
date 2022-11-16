@@ -187,4 +187,4 @@ class Mixnet:
         self.db.updateTotalPackets(totalPktsRecv, totalPktsSent, avgTimeUpdate,self.estimatedQueryTime)
 
         print(
-            f"{datetime.datetime.now()} - func run in {self.estimatedQueryTime} update mixed packets end. Pkts avg mixnodes update {reduce(lambda a, b: a + b, timeUpdate) / len(timeUpdate)}s - error counter {errorCounter}")
+            f"{datetime.datetime.now()} - func run in {self.estimatedQueryTime} update mixed packets end. Pkts avg mixnodes update {avgTimeUpdate}s - error counter {errorCounter}")
