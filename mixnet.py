@@ -158,7 +158,7 @@ class Mixnet:
                         timeUpdate.append(updateTime - previousUpdateTime)
                 else:
                     errorCounter += 1
-        try
+        try:
             avgTimeUpdate = reduce(lambda a, b: a + b, timeUpdate) / len(timeUpdate)
             MU = 10.0 ** 6
             # microseconds are maybe overkill but could be useful later
