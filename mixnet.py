@@ -88,7 +88,7 @@ class Mixnet:
         async with session.get(url, allow_redirects=True, timeout=5) as resp:
             try:
                 return await resp.json() if resp.ok else None
-            except requests.RequestException or asyncio.TimeoutError as e:
+            except (requests.RequestException, asyncio.TimeoutError, TypeError) as e:
                 print(traceback.format_exc())
                 print(e)
 
