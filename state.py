@@ -202,7 +202,10 @@ class State:
         mixnetState = self.getMixnodesState()
         validatorState = self.getValidatorState()
         rpcState = self.getRPCState()
-        epochState, epochId = self.getEpochState()
+        try:
+            epochState, epochId = self.getEpochState()
+        except TypeError as e:
+            print(e)
 
         self.db.setState(mixnetState, validatorState, rpcState, epochState, epochId)
 
