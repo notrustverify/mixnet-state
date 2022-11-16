@@ -110,10 +110,10 @@ class Mixnet:
                     print(f"{datetime.datetime.utcnow()} - No update during epoch change")
                     return
             
-            print(f"Next epoch {datetime.datetime.fromtimestamp(epochTimeChange)} Epoch time {datetime.datetime.fromtimestamp(epochTimeChangeFromStart+self.estimatedEpochChangeTime)} "
+                print(f"Next epoch {datetime.datetime.fromtimestamp(epochTimeChange)} Epoch time {datetime.datetime.fromtimestamp(epochTimeChangeFromStart+self.estimatedEpochChangeTime)} "
                   f"\n Now {now} Delayed {datetime.datetime.fromtimestamp(now.timestamp() + self.estimatedQueryTime)}")
-            start = now
-            self.getActiveSetNodes()
+                start = now
+                self.getActiveSetNodes()
         except (AttributeError,TypeError) as e:
             print(traceback.format_exc())
             print(e)
