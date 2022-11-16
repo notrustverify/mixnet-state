@@ -158,15 +158,15 @@ class Mixnet:
                         timeUpdate.append(updateTime - previousUpdateTime)
                 else:
                     errorCounter += 1
-        try:
+        
+        avgTimeUpdate = 0
+        if len(timeUpdate) > 0:
             avgTimeUpdate = reduce(lambda a, b: a + b, timeUpdate) / len(timeUpdate)
             MU = 10.0 ** 6
             # microseconds are maybe overkill but could be useful later
             avgTimeUpdate = avgTimeUpdate.seconds + avgTimeUpdate.microseconds / MU
-        except TypeError as e:
-            print(traceback.format_exc())
-            print(e)
-            avgTimeUpdate = 0
+        else:
+            print("error time update average")
 
 
         if utils.DEBUG:
