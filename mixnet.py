@@ -75,7 +75,7 @@ class Mixnet:
             print(f"Delta from last Recv {pktRcv}  Sent {pktSent}")
 
             return {"deltaPktsRcv": pktRcv, "deltaPktsSent": pktSent}
-        except KeyError and IndexError as e:
+        except (KeyError,IndexError) as e:
             print(traceback.format_exc())
             print(e)
 
@@ -115,6 +115,7 @@ class Mixnet:
             start = now
             self.getActiveSetNodes()
         except (AttributeError,TypeError) as e:
+            print(traceback.format_exc())
             print(e)
             exit()
 
