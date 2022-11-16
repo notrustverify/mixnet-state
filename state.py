@@ -174,9 +174,9 @@ class State:
             if response.ok:
                 state = response.json()
 
-                if state.get('length'):
+                if state.get('epoch_length'):
                     now = datetime.datetime.utcnow()
-                    epochLength = state['length']['secs']
+                    epochLength = state['epoch_length']['secs']
                     epochStart = datetime.datetime.fromisoformat(state['start'].replace('Z', ''))
                     epochId = state['current_epoch_id']
 

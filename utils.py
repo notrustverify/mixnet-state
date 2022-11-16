@@ -55,7 +55,7 @@ def getNextEpoch(fromStart=False):
             epoch = response.json()
             if epoch.get('current_epoch_start'):
                 currentEpoch = datetime.datetime.strptime(epoch.get('current_epoch_start'), "%Y-%m-%dT%H:%M:%SZ")
-                epochLength = epoch['length'].get('secs')
+                epochLength = epoch['epoch_length'].get('secs')
 
                 return currentEpoch.timestamp(),currentEpoch.timestamp() + epochLength
         
