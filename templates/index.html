@@ -209,8 +209,8 @@ var epoch;
 async function updateEpoch() {
  let tzUser = dayjs.tz.guess();
  epoch = await get("https://validator.nymtech.net/api/v1/epoch/current");
- let interval = JSON.stringify(epoch.length.secs);
- let epochStart = dayjs(JSON.stringify(epoch.start).slice(1,-1)).tz(tzUser);
+ let interval = JSON.stringify(epoch_length.secs);
+ let epochStart = dayjs(JSON.stringify(current_epoch_start).slice(1,-1)).tz(tzUser);
  let epochEnd = epochStart.add(interval,'seconds');
  document.getElementById("epochEnd").innerHTML = epochEnd.fromNow() + " at " +epochEnd.format("LTS");
 
