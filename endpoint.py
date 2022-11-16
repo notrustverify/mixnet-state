@@ -107,8 +107,8 @@ def update():
     print(f"{datetime.now()} - update end")
 
     schedule.every(utils.UPDATE_MINUTES_CHECK_SET).minutes.do(mixnetState.getMixnodes)
-    schedule.every(utils.UPDATE_MINUTES_STATE).minutes.do(mixnetState.setStates)
-    schedule.every(utils.UPDATE_SECONDS_PACKET_MIXED).seconds.do(mixnet.getPacketsMixnode)
+    #schedule.every(utils.UPDATE_MINUTES_STATE).minutes.do(mixnetState.setStates)
+    #schedule.every(utils.UPDATE_SECONDS_PACKET_MIXED).seconds.do(mixnet.getPacketsMixnode)
     # schedule.every(utils.UPDATE_SECONDS_ACTIVE_SET).seconds.do(mixnet.getActiveSetNodes)
 
     while True:
