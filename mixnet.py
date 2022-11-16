@@ -114,6 +114,9 @@ class Mixnet:
                   f"\n Now {now} Delayed {datetime.datetime.fromtimestamp(now.timestamp() + self.estimatedQueryTime)}")
                 start = now
                 self.getActiveSetNodes()
+            else:
+                print("Error with epoch")
+                return
         except (AttributeError,TypeError) as e:
             print(traceback.format_exc())
             print(e)
