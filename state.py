@@ -187,7 +187,7 @@ class State:
                 print(f"{datetime.datetime.utcnow()} Epoch nok")
                 return False, 0
 
-        except requests.RequestException as e:
+        except (requests.RequestException,AttributeError) as e:
             print(traceback.format_exc())
             print(e)
             print(f"{datetime.datetime.utcnow()} Epoch nok")
