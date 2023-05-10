@@ -15,6 +15,7 @@ gunicorn = "*"
 aiohttp = "*"
 python-dateutil = "*"
 backoff = "*"
+dateparser = "*"
 
 
 [dev-packages]

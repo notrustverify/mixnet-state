@@ -4,10 +4,13 @@ import traceback
 from datetime import datetime
 from os.path import exists
 
+import dateparser
+
 import schedule
 from cachetools import cached, TTLCache
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 from flask_restful import Resource, Api, abort, fields
+
 
 import utils
 from db import BaseModel
@@ -61,10 +64,24 @@ class MixnetState(Resource):
 
 class MixnetStats(Resource):
     def get(self):
-        data = self.read_data()
-        response = jsonify(data)
+        timedelta = request.args.get('timedelta', type=str, default=None)
+        data = {}
+
+        if timedelta is None:
+            data = self.read_data()
+        else:
+            try:
+
+                timedelta = dateparser.parse(timedelta, settings={'TIMEZONE': 'UTC'})
+                data = self.read_data_timeframe(timedelta)
+            except Exception as e:
+                print(f"Error with dateparser, {e}")
+
+
         if len(data) <= 0:
             abort(404, error_message="no data")
+
+        response = jsonify(data)
         response.headers.add("Access-Control-Allow-Origin", "*")
         return response
 
@@ -91,6 +108,17 @@ class MixnetStats(Resource):
             })
 
             return data
+        except (IndexError, KeyError):
+            print(traceback.format_exc())
+            return {}
+
+    def read_data_timeframe(self, timedelta):
+        data = {}
+
+        try:
+            packetsMixed = db.getMixedPacketsTime(timedelta)
+
+            return packetsMixed
         except (IndexError, KeyError):
             print(traceback.format_exc())
             return {}

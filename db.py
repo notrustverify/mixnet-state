@@ -1,6 +1,7 @@
 import logging
 import traceback
-from datetime import datetime
+from datetime import datetime,timedelta
+
 
 from peewee import *
 
@@ -41,6 +42,7 @@ class BaseModel(Model):
             return False
         finally:
             self.close()
+
 
     def insertCheckSet(self, ips):
         self.connect()
@@ -212,6 +214,8 @@ class BaseModel(Model):
 
         return data
 
+
+
     def setState(self, mixnet, validator, rpc, epochState, epochId):
         self.connect()
 
@@ -272,6 +276,35 @@ class BaseModel(Model):
                         [s for s in State.select(State.created_on).order_by(State.created_on.asc()).limit(1).dicts()][0]
 
                 return lastCrash[0]
+
+        except IntegrityError as e:
+            logHandler.exception(e)
+            return False
+        except DoesNotExist as e:
+            logHandler.exception(e)
+            return False
+        finally:
+            self.close()
+
+    def getMixedPacketsTime(self, timedelta):
+        self.connect()
+        print(timedelta)
+        try:
+            with database.atomic():
+                now = datetime.utcnow()
+                '''
+                return list(PacketsMixed.select(PacketsMixed.total_packets_sent,
+                                                PacketsMixed.total_packets_received
+                                                , PacketsMixed.created_on.alias('timestamp')).where(PacketsMixed.created_on.between(timedelta, now)).order_by(PacketsMixed.created_on.desc()).dicts())
+                '''
+
+                return list(PacketsMixed.select(fn.Sum(PacketsMixed.total_packets_sent).alias('total_packets_sent'),
+                                                fn.Sum(PacketsMixed.total_packets_received).alias('total_packets_received')
+                                               , PacketsMixed.created_on.alias('timestamp')).where(PacketsMixed.created_on.between(timedelta, now)).
+                                               group_by(fn.strftime('%M', PacketsMixed.created_on)).
+                                               order_by(PacketsMixed.created_on.desc()).
+                                            dicts())
+
 
         except IntegrityError as e:
             logHandler.exception(e)
