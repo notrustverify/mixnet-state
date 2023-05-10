@@ -77,7 +77,6 @@ class MixnetStats(Resource):
             except Exception as e:
                 print(f"Error with dateparser, {e}")
 
-
         if len(data) <= 0:
             abort(404, error_message="no data")
 
