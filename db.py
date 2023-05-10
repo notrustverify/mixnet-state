@@ -301,7 +301,7 @@ class BaseModel(Model):
                 return list(PacketsMixed.select(fn.Sum(PacketsMixed.total_packets_sent).alias('total_packets_sent'),
                                                 fn.Sum(PacketsMixed.total_packets_received).alias('total_packets_received')
                                                , PacketsMixed.created_on.alias('timestamp')).where(PacketsMixed.created_on.between(timedelta, now)).
-                                               group_by(fn.strftime('%Y-%m-%d %H:%M:%S', PacketsMixed.created_on)).
+                                               group_by(fn.strftime('%Y-%m-%d %H:%M', PacketsMixed.created_on)).
                                                order_by(PacketsMixed.created_on.desc()).
                                            dicts())
 
