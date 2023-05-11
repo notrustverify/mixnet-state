@@ -1,5 +1,7 @@
 data/data.db
 .env
+.db.env.example
+docker-compose.yml
 .idea/
 # Byte-compiled / optimized / DLL files
 __pycache__/

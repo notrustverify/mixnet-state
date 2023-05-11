@@ -1,0 +1,27 @@
+version: "3.3"
+
+services:
+  mixnet_state:
+    build: .
+    image: mixnet-state
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "5003:5002"
+    volumes:
+      - ./data/data.db:/data/data.db
+
+  db:
+    image: postgres
+    restart: unless-stopped
+    env_file:
+      - .db.env
+    environment:
+      POSTGRES_DB: mixnetstate
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval    : 1s
+      timeout: 5s
+      retries: 10
+    volumes:
+       - ./db-data/:/var/lib/postgresql/data/

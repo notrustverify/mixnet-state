@@ -31,7 +31,10 @@ UPDATE_SECONDS_PACKETS = os.getenv("UPDATE_SECONDS_PACKETS",30)
 SPHINX_PACKET_SIZE_BYTES = float(os.getenv("SPHINX_PACKET_SIZE_BYTES",2145))
 SPHINX_PACKET_PAYLOAD_BYTES = float(os.getenv("SPHINX_PACKET_PAYLOAD_BYTES",2048))
 
-
+DB_USER=os.getenv("DB_USER")
+DB_PASSWORD=os.getenv("DB_PASSWORD")
+DB_NAME=os.getenv("DB_NAME","mixnetstate")
+DB_HOST=os.getenv("DB_HOST")
 def format_bytes(size):
     power = 2 ** 10
     n = 0

@@ -13,7 +13,7 @@ from flask_restful import Resource, Api, abort, fields
 
 
 import utils
-from db import BaseModel
+from db import BaseModel, create_tables
 from mixnet import Mixnet
 from state import State
 
@@ -75,6 +75,7 @@ class MixnetStats(Resource):
                 timedelta = dateparser.parse(timedelta, settings={'TIMEZONE': 'UTC'})
                 data = self.read_data_timeframe(timedelta)
             except Exception as e:
+                print(traceback.format_exc())
                 print(f"Error with dateparser, {e}")
 
         if len(data) <= 0:
@@ -112,8 +113,6 @@ class MixnetStats(Resource):
             return {}
 
     def read_data_timeframe(self, timedelta):
-        data = {}
-
         try:
             packetsMixed = db.getMixedPacketsTime(timedelta)
 
@@ -149,8 +148,8 @@ th.start()
 api.add_resource(MixnetState, '/api/state')
 api.add_resource(MixnetStats, '/api/packets')
 
-if not (exists("./data/data.db")):
-    db.create_tables()
+if not (exists("./data/data.db")) or utils.DB_NAME:
+    create_tables()
 
 if __name__ == '__main__':
     host = '0.0.0.0'

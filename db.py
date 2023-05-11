@@ -5,7 +5,16 @@ from datetime import datetime,timedelta
 
 from peewee import *
 
-database = SqliteDatabase('./data/data.db', pragmas={'foreign_keys': 1})
+import utils
+
+#database = SqliteDatabase('./data/data.db', pragmas={'foreign_keys': 1})
+database = PostgresqlDatabase(utils.DB_NAME, user=utils.DB_USER, password=utils.DB_PASSWORD,
+                           host=utils.DB_HOST, port=5432)
+
+
+def create_tables():
+    database.connect()
+    database.create_tables([Mixnodes, State, PacketsMixed])
 
 logger = logging.getLogger('db')
 logHandler = logging.getLogger('db')
@@ -300,8 +309,10 @@ class BaseModel(Model):
 
                 return list(PacketsMixed.select(fn.Sum(PacketsMixed.total_packets_sent).alias('total_packets_sent'),
                                                 fn.Sum(PacketsMixed.total_packets_received).alias('total_packets_received')
-                                               , PacketsMixed.created_on.alias('timestamp')).where(PacketsMixed.created_on.between(timedelta, now)).
-                                               group_by(fn.strftime('%Y-%m-%d %H:%M', PacketsMixed.created_on)).
+                                               ,fn.date_trunc('minute', PacketsMixed.created_on).alias('timestamp')).where(PacketsMixed.created_on.between(timedelta, now)).
+                                               group_by(fn.date_trunc('minute', PacketsMixed.created_on),fn.Sum(PacketsMixed.total_packets_sent).alias('total_packets_sent'),
+                                                fn.Sum(PacketsMixed.total_packets_received).alias('total_packets_received'),
+                                                        PacketsMixed.created_on).
                                                order_by(PacketsMixed.created_on.desc()).
                                            dicts())
 
@@ -390,6 +401,3 @@ class State(BaseModel):
     updated_on = DateTimeField(default=datetime.utcnow)
 
 
-def create_tables():
-    with database:
-        database.create_tables([Mixnodes, State, PacketsMixed])

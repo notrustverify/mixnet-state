@@ -21,6 +21,21 @@ services:
     volumes:
       - ./data/data.db:/data/data.db
 
+  db:
+    image: postgres
+    restart: always
+    env_file:
+      - .db.env
+    environment:
+      POSTGRES_DB: mixnetstate
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval    : 1s
+      timeout: 5s
+      retries: 10
+    volumes:
+       - ./db-data/:/var/lib/postgresql/data/
+
 networks:
    traefik-proxy:
       external: true
