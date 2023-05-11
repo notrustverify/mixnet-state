@@ -1,6 +1,6 @@
 data/data.db
 .env
-.db.env.example
+.db.env
 docker-compose.yml
 .idea/
 # Byte-compiled / optimized / DLL files
