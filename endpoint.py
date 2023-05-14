@@ -121,30 +121,6 @@ class MixnetStats(Resource):
             print(traceback.format_exc())
             return {}
 
-
-def update():
-    mixnetState = State()
-    mixnet = Mixnet()
-
-    # update check set at start
-    mixnetState.getMixnodes()
-    mixnet.getActiveSetNodes(firstRun=True)
-    mixnetState.setStates()
-    print(f"{datetime.now()} - update end")
-
-    schedule.every(utils.UPDATE_MINUTES_CHECK_SET).minutes.do(mixnetState.getMixnodes)
-    schedule.every(utils.UPDATE_MINUTES_STATE).minutes.do(mixnetState.setStates)
-    schedule.every(utils.UPDATE_SECONDS_PACKET_MIXED).seconds.do(mixnet.getPacketsMixnode)
-    schedule.every(utils.UPDATE_SECONDS_ACTIVE_SET).seconds.do(mixnet.getActiveSetNodes)
-
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
-
-
-th = threading.Thread(target=update)
-th.start()
-
 api.add_resource(MixnetState, '/api/state')
 api.add_resource(MixnetStats, '/api/packets')
 

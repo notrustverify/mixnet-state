@@ -2,3 +2,4 @@
 .db.env.example
 data/data.db
 db-data
+.github

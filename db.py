@@ -12,6 +12,7 @@ database = PostgresqlDatabase(utils.DB_NAME, user=utils.DB_USER, password=utils.
                            host=utils.DB_HOST, port=5432)
 
 
+
 def create_tables():
     database.connect()
     database.create_tables([Mixnodes, State, PacketsMixed])
