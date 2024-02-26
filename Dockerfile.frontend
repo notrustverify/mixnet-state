@@ -1,5 +1,5 @@
 #Create ubuntu as base image
-FROM python
+FROM python:3.10
 WORKDIR /
 
 #Install packages
