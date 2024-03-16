@@ -1,7 +1,7 @@
 import logging
 import traceback
 from datetime import datetime,timedelta
-
+import sys
 
 from peewee import *
 
@@ -30,6 +30,7 @@ class BaseModel(Model):
                 database.connect()
         except Exception as e:
             print(traceback.format_exc())
+            sys.exit(1)
 
     def close(self):
         try:
@@ -37,7 +38,7 @@ class BaseModel(Model):
                 database.close()
         except Exception as e:
             print(traceback.format_exc())
-            exit(1)
+            sys.exit(1)
 
     def getPacketsLastUpdate(self):
         self.connect()
