@@ -17,11 +17,15 @@ def update():
     mixnet.getActiveSetNodes(firstRun=True)
     mixnetState.setStates()
     print(f"{datetime.now()} - update end")
-
-    schedule.every(utils.UPDATE_MINUTES_CHECK_SET).minutes.do(mixnetState.getMixnodes)
-    schedule.every(utils.UPDATE_MINUTES_STATE).minutes.do(mixnetState.setStates)
-    schedule.every(utils.UPDATE_SECONDS_PACKET_MIXED).seconds.do(mixnet.getPacketsMixnode)
-    schedule.every(utils.UPDATE_SECONDS_ACTIVE_SET).seconds.do(mixnet.getActiveSetNodes)
+    
+    try:
+        schedule.every(utils.UPDATE_MINUTES_CHECK_SET).minutes.do(mixnetState.getMixnodes)
+        schedule.every(utils.UPDATE_MINUTES_STATE).minutes.do(mixnetState.setStates)
+        schedule.every(utils.UPDATE_SECONDS_PACKET_MIXED).seconds.do(mixnet.getPacketsMixnode)
+        schedule.every(utils.UPDATE_SECONDS_ACTIVE_SET).seconds.do(mixnet.getActiveSetNodes)
+    except Exception as e:
+        print(f"error on updateState.py. will exit")
+        print(e)
 
     while True:
         schedule.run_pending()

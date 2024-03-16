@@ -37,6 +37,7 @@ class BaseModel(Model):
                 database.close()
         except Exception as e:
             print(traceback.format_exc())
+            exit(1)
 
     def getPacketsLastUpdate(self):
         self.connect()
