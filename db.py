@@ -312,7 +312,6 @@ class BaseModel(Model):
                                                 PacketsMixed.total_packets_received
                                                 , PacketsMixed.created_on.alias('timestamp')).where(PacketsMixed.created_on.between(timedelta, now)).order_by(PacketsMixed.created_on.desc()).dicts())
                 '''
-                print(list(PacketsMixed.select().dicts()))
                 return list(PacketsMixed.select(fn.date_trunc('second', PacketsMixed.created_on).alias('timestamp'),fn.Sum(PacketsMixed.total_packets_sent).alias('total_packets_sent'),
                                                 fn.Sum(PacketsMixed.total_packets_received).alias('total_packets_received')
                                                ).where(PacketsMixed.created_on.between(timedelta, now)).
