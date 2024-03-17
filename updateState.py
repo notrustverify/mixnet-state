@@ -27,7 +27,7 @@ def update():
     except Exception as e:
         print(f"error on updateState.py. will exit")
         print(e)
-        exit(1)
+        sys.exit(1)
 
     while True:
         schedule.run_pending()
